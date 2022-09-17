@@ -1,0 +1,8 @@
+dist/
+node_modules/
+/.idea
+server/node_modules/
+server/.idea/
+package-lock.json
+yarn.lock
+yarn-error.log
