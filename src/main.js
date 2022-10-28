@@ -60,9 +60,8 @@ const init = () => {
         };
         
         struct Sphere {
-            float radius;
             vec3 position;
-            vec3 color;
+            float radius;
         };
         
         struct Camera {
@@ -73,20 +72,23 @@ const init = () => {
             vec3 origin;
             vec3 direction;
         };
-        
-        struct Scene {
-            Sphere[1] sphere;
-        } scene;
-        
         Camera camera = Camera(
             vec3(0.5, 0.5,  -5.0)
         );
         
-        Sphere sphere = Sphere(
-            0.2,
-            vec3(0.5, 0.75, 0.0),
-            vec3(1.0, 1.0, 1.0)
-        );
+        struct Material {
+            vec3 Kd; // diffuse color
+            vec3 Ke; // emissive color
+        };
+        
+        Material diffuse(in vec3 Kd) {
+           return Material(Kd, vec3(0.0, 0.0, 0.0));
+        }
+        
+        Material light(in vec3 Ke) {
+           return Material(vec3(0.0, 0.0, 0.0), Ke);
+        }
+        
         
         Ray initRay(in Pixel pixel, in Camera camera) {
             vec3 direction = normalize(vec3(pixel.coordinate.xy,0.0) - camera.eye);        
@@ -121,22 +123,14 @@ const init = () => {
             return t;
         }
         
-        vec3 rayTrace(vec2 fCord) {
-            /*float p1 , p2;
-            if(checkIntersect(fCord, p1, p2)) {
-                float p = p1;
-                if (p2 < p) {
-                    p = p2;
-                }
-                vec3 hitPoint = ray.origin + (ray.direction * p);
-                vec3 ambientCol = calculateAmbientDiffuse(hitPoint);
-                vec3 sunCon = calculateSunLight(hitPoint);
-                return sunCon * sphere.color;
-            } else {
-                return vec3(0.0);
-            }*/
-            
-            
+        struct Object {
+           Sphere sphere;
+           Material material;
+        };
+        
+        Object scene[2];
+        
+        vec3 rayTrace(vec2 fCord) {            
             //Забираем цвет с исходной текстуры
             vec4 uSampler = texture2D(uSampler, vUvs.xy).rgba;
             
@@ -147,10 +141,35 @@ const init = () => {
            
             Ray ray = initRay(pixel, camera);
             
-            sphere.position = vec3(iMouse.x+sin(iTime) * 0.5, iMouse.y+cos(iTime) * 0.5, 1.0);
-            float ray_length = computeSphereIntersection(ray, sphere);
+            scene[0] = Object(
+              Sphere(vec3(iMouse.x+sin(iTime) * 0.5, iMouse.y+cos(iTime) * 0.5, 1.0),0.2), 
+              diffuse(vec3(1.0, 1.0, 1.0))
+            );
+            
+            scene[1] = Object(
+              Sphere(vec3(5.0, 0.0, -3.0),0.02),
+              light(vec3(1.0, 1.0, 1.0)) 
+            );
+           
+            Material material; // Couleur
+            float ray_length = computeSphereIntersection(ray, scene[0].sphere);
             if (ray_length > 0.0 && ray_length < infini) {
-                pixel.color = sphere.color;
+                material = scene[0].material;
+                
+                if(material.Ke != vec3(0.0, 0.0, 0.0)) {
+                    pixel.color = scene[0].material.Ke;
+                } else {
+                    vec3 result = vec3(0.0, 0.0, 0.0);
+                    for(int i=0; i<2; ++i) {
+                        if(scene[i].material.Ke != vec3(0.0, 0.0, 0.0)) {
+                            Ray R2 = Ray(ray.origin, scene[i].sphere.position);
+                            vec3 E = scene[i].sphere.position - ray.origin;
+                            float lamb = max(0.0, dot(E,ray.direction) / length(E));
+                            result += lamb * material.Kd * scene[i].material.Ke;
+                        }
+                   }
+                   pixel.color = result;
+                }
             }
             return pixel.color;
         }
