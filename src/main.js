@@ -1,4 +1,3 @@
-import Cards from './cards';
 import * as PIXI from 'pixi.js';
 import { Application } from '@pixi/app';
 import { InteractionManager } from '@pixi/interaction';
@@ -20,7 +19,7 @@ const init = () => {
         fontSize: 20,
         fontFamily: 'Arial, Helvetica, sans-serif',
     });
-    const text = new PIXI.Text('Hello World', style);
+    const text = new PIXI.Text('Low Pixels Ray Tracing', style);
     container.addChild(text);
     /*Матрицы используются для определения местонахождения квадрата, где рендерится
     * в частности поэтому aVertexPosition имеет тип vec2
@@ -43,15 +42,10 @@ const init = () => {
     const frag = `
         varying vec3 vUvs;
         
-        #define STEPS 40
-        #define LIGHTPASSES 1
-        
-
         uniform sampler2D uSampler;
         uniform float iTime;
         uniform vec2 iMouse;
        
-        const vec3 wallColor = vec3(1.0,1.0,1.0);
         const float infini = 1.0 / 0.0;
         
         struct Pixel {
@@ -72,8 +66,9 @@ const init = () => {
             vec3 origin;
             vec3 direction;
         };
+        
         Camera camera = Camera(
-            vec3(0.5, 0.5,  -5.0)
+            vec3(1.0, 0.5,  -5.0)
         );
         
         struct Material {
@@ -84,11 +79,10 @@ const init = () => {
         Material diffuse(in vec3 Kd) {
            return Material(Kd, vec3(0.0, 0.0, 0.0));
         }
-        
+                
         Material light(in vec3 Ke) {
            return Material(vec3(0.0, 0.0, 0.0), Ke);
         }
-        
         
         Ray initRay(in Pixel pixel, in Camera camera) {
             vec3 direction = normalize(vec3(pixel.coordinate.xy,0.0) - camera.eye);        
@@ -130,7 +124,7 @@ const init = () => {
         
         Object scene[2];
         
-        vec3 rayTrace(vec2 fCord) {            
+        vec3 rayTrace() {            
             //Забираем цвет с исходной текстуры
             vec4 uSampler = texture2D(uSampler, vUvs.xy).rgba;
             
@@ -140,18 +134,18 @@ const init = () => {
             );
            
             Ray ray = initRay(pixel, camera);
-            
+            //iMouse.x
             scene[0] = Object(
-              Sphere(vec3(iMouse.x+sin(iTime) * 0.5, iMouse.y+cos(iTime) * 0.5, 1.0),0.2), 
+              Sphere(vec3(1.0+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0),0.3), 
               diffuse(vec3(1.0, 1.0, 1.0))
             );
             
             scene[1] = Object(
-              Sphere(vec3(5.0, 0.0, -3.0),0.02),
+              Sphere(vec3(1.0, 3.5, -3.0), 0.00),
               light(vec3(1.0, 1.0, 1.0)) 
             );
            
-            Material material; // Couleur
+            Material material;
             float ray_length = computeSphereIntersection(ray, scene[0].sphere);
             if (ray_length > 0.0 && ray_length < infini) {
                 material = scene[0].material;
@@ -161,8 +155,8 @@ const init = () => {
                 } else {
                     vec3 result = vec3(0.0, 0.0, 0.0);
                     for(int i=0; i<2; ++i) {
+                        //Для всех сфер являющихся источниками света
                         if(scene[i].material.Ke != vec3(0.0, 0.0, 0.0)) {
-                            Ray R2 = Ray(ray.origin, scene[i].sphere.position);
                             vec3 E = scene[i].sphere.position - ray.origin;
                             float lamb = max(0.0, dot(E,ray.direction) / length(E));
                             result += lamb * material.Kd * scene[i].material.Ke;
@@ -171,15 +165,22 @@ const init = () => {
                    pixel.color = result;
                 }
             }
+            if (
+                floor(pixel.coordinate.x*20.0)==floor(iMouse.x*20.0) &&
+                floor(pixel.coordinate.y*20.0)==floor(iMouse.y*20.0)
+             ) {
+                pixel.color = vec3(1.0, 0.0, 0.0);
+            }
             return pixel.color;
         }
         
         void main(void) {
-            gl_FragColor = vec4(rayTrace(vUvs.xy), 1.0);
+            gl_FragColor = vec4(rayTrace(), 1.0);
         }
     `;
-
-    let buff = new Uint8Array(20 * 20 * 4);
+    let width=40;
+    let height=20;
+    let buff = new Uint8Array(width * height * 4);
     buff.forEach((_, bufferIndex) => {
         //RGBA
         [0, 0, 255, 255].forEach((colorChannel, colorChannelIndex) => {
@@ -187,7 +188,7 @@ const init = () => {
         });
     });
 
-    let texture = PIXI.Texture.fromBuffer(/*buff*/null, 20, 20);
+    let texture = PIXI.Texture.fromBuffer(/*buff*/null, width, height);
     const material = new PIXI.MeshMaterial(texture, {
         program: PIXI.Program.from(vert, frag),
         uniforms: {
@@ -200,16 +201,16 @@ const init = () => {
         .addAttribute('aVertexPosition',
             [
                 0, 0,
-                20, 0,
-                20, 20,
-                0, 20,
+                width, 0,
+                width, height,
+                0, height,
             ])
         .addAttribute('aUvs',
             [
                 0, 0, 0,
-                1, 0, 0,
-                1, 1, 0,
-                0, 1, 0,
+                width/height, 0, 0,
+                width/height, height/height, 0,
+                0, height/height, 0,
             ])
         .addIndex([0, 1, 2, 0, 2, 3]);
 
@@ -217,16 +218,16 @@ const init = () => {
     mesh.position.set(0, 0);
 
     const baseRenderTexture = new PIXI.BaseRenderTexture({
-        width: 20,
-        height: 20,
+        width: width,
+        height: height,
         scaleMode: PIXI.SCALE_MODES.NEAREST,
 
     });
     const renderTexture = new PIXI.RenderTexture(baseRenderTexture);
     const sprite = new PIXI.Sprite(renderTexture);
     sprite.anchor.set(0.5, 0.5);
-    sprite.position.set(300, 300);
-    sprite.scale.set(20, 20);
+    sprite.position.set(400, 300);
+    sprite.scale.set(15, 15);
 
     let mouse = {
         x: 10,
@@ -236,19 +237,16 @@ const init = () => {
     sprite.buttonMode = true;
     sprite.on('pointertap', function(event) {
         console.log('PointerTap event');
-        mouse.x = event.data.getLocalPosition(event.currentTarget).x + 10;
-        mouse.y = event.data.getLocalPosition(event.currentTarget).y + 10;
-        console.log('X', mouse.x, 'Y', mouse.y);
+        mouse.x = event.data.getLocalPosition(event.currentTarget).x+20;
+        mouse.y = event.data.getLocalPosition(event.currentTarget).y+10;
+        console.log('X', mouse.x/20, 'Y', mouse.y/20);
     });
     container.addChild(sprite);
     document.body.querySelector('#root').appendChild(app.view);
     app.ticker.add(() => {
-        Cards.time = app.ticker.lastTime;
-        sprite;
         mesh.shader.uniforms.iTime = app.ticker.lastTime / 1000;
         mesh.shader.uniforms.iMouse = [mouse.x / 20, mouse.y / 20];
         app.renderer.render(mesh, { renderTexture });
-        /*text.text = ' time: ' + Cards.time + '\n Кликай на тёмное поле!';*/
     });
     app.ticker.start();
 
