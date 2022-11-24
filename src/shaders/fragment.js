@@ -6,7 +6,6 @@ export let frag = `
         uniform vec2 iMouse;
 
         const float infini = 1.0 / 0.0;
-        const float FARAWAY=1e30;
 
 
         struct Pixel {
@@ -42,12 +41,12 @@ export let frag = `
         
         Intersection intersection() {
            Intersection I;
-           I.t = FARAWAY;
+           I.t = infini;
            return I;
         }
         
         Camera camera = Camera(
-            vec3(1.0, 0.5,  -5.0)
+            vec3(0.0, 0.0, -1.0)
         );
 
         Material diffuse(in vec3 Kd) {
@@ -109,21 +108,7 @@ export let frag = `
            return (det >= 1e-6 && t >= 0.0 && u >= 0.0 && v >= 0.0 && (u+v) <= 1.0);
         }
         
-        void triangle(in Ray R, vec3 A, vec3 B, vec3 C, inout Intersection I) {
-           float t,u,v;
-           vec3 N;
-           if(intersect_triangle(R, A,B,C, t, u, v, N) && t < I.t) {
-              I.t = t;
-              //I.material = M;
-              I.P = R.origin + t*R.direction;
-              I.N = normalize(N);
-           }
-        }
         
-        float computeTriangleIntersection(inout Ray ray, in Sphere sphere) {
-            return 0.0;
-        }
-
         struct Object {
            Sphere sphere;
            Material material;
@@ -141,12 +126,11 @@ export let frag = `
             );
 
             Ray ray = initRay(pixel, camera);
-            Intersection I = intersection();            
-            triangle(ray, vec3(-1.0,0.0,3.0), vec3(0.0,1.0,3.0), vec3(1.0,0.0,3.0), I);
+            Intersection I = intersection();
             
             //iMouse.x
             scene[0] = Object(
-              Sphere(vec3(1.0+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0),0.3),
+              Sphere(vec3(0.5+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0),0.3),
               diffuse(vec3(1.0, 1.0, 1.0))
             );
 
@@ -175,8 +159,10 @@ export let frag = `
                    pixel.color = result;
                 }
             } else {
-                if (I.t != FARAWAY ) {
-                
+                float t,u,v;                
+                vec3 N;
+                //Важен путь обхода вершин!
+                if (intersect_triangle(ray, vec3(4.0+sin(iTime),0.0,3.0),vec3(1.0,3.0,3.0),  vec3(7.0,3.0,3.0), t, u, v, N) ) {
                    pixel.color = vec3(1.0,1.0,1.0);
                 }
             }

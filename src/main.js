@@ -15,13 +15,26 @@ const init = () => {
     let container = new PIXI.Container();
     app.stage.addChild(container);
 
+
+    const Telegram_2019_Logo = new PIXI.Sprite(PIXI.Texture.from('Telegram_2019_Logo.svg'));
+    Telegram_2019_Logo.position.set(40,50);
+    Telegram_2019_Logo.anchor.set(0.5);
+    Telegram_2019_Logo.scale.set(0.33);
+
     const style = new PIXI.TextStyle({
         fontSize: 20,
         fontFamily: 'Arial, Helvetica, sans-serif',
     });
-    const text = new PIXI.Text('Low Pixels Ray Tracing', style);
+    const text = new PIXI.Text('@xTrancendence', style);
+    text.position.set(75,50);
+    text.anchor.set(0, 0.5);
+    text.interactive = true;
+    text.buttonMode = true;
+    text.on('pointertap', function(event) {
+        window.open('https://t.me/xTranscendence', "__blank")
+    });
     container.addChild(text);
-
+    container.addChild(Telegram_2019_Logo);
     let width=40;
     let height=20;
     /*let buff = new Uint8Array(width * height * 4);
@@ -62,7 +75,7 @@ const init = () => {
     let sprite = new PIXI.Sprite(renderTexture);
     sprite.anchor.set(0.5, 0.5);
     sprite.position.set(400, 300);
-    sprite.scale.set(10, 10);
+    sprite.scale.set(20, 20);
     let mouse = {
         x: 0,
         y: 0,
@@ -78,13 +91,13 @@ const init = () => {
     });
     container.addChild(sprite);
     app.ticker.add(() => {
-        mesh.shader.uniforms.iTime = app.ticker.lastTime / 1000;
+        mesh.shader.uniforms.iTime = app.ticker.lastTime / 100;
         mesh.shader.uniforms.iMouse = [mouse.x, mouse.y];
         app.renderer.render(mesh, { renderTexture });
     });
     app.ticker.start();
 
-    document.body.querySelector('#root').appendChild(app.view);
+    document.body.querySelector('#app').appendChild(app.view);
 
 };
 window.onload = init;
