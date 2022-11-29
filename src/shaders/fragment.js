@@ -4,6 +4,7 @@ export let frag = `
         uniform sampler2D uSampler;
         uniform float iTime;
         uniform vec2 iMouse;
+        uniform float iScale;
 
         const float infini = 1.0 / 0.0;
 
@@ -107,7 +108,20 @@ export let frag = `
            t =  dot(AO,N)  * invdet; 
            return (det >= 1e-6 && t >= 0.0 && u >= 0.0 && v >= 0.0 && (u+v) <= 1.0);
         }
-        
+        vec3 triIntersect( in Ray R, in vec3 v0, in vec3 v1, in vec3 v2 )
+        {
+            vec3 v1v0 = v1 - v0;
+            vec3 v2v0 = v2 - v0;
+            vec3 rov0 = R.origin - v0;
+            vec3  n = cross( v1v0, v2v0 );
+            vec3  q = cross( rov0, R.direction );
+            float d = 1.0/dot( R.direction, n );
+            float u = d*dot( -q, v2v0 );
+            float v = d*dot(  q, v1v0 );
+            float t = d*dot( -n, rov0 );
+            if( u<0.0 || v<0.0 || (u+v)>1.0 ) t = -1.0;
+            return vec3( t, u, v );
+        }
         
         struct Object {
            Sphere sphere;
@@ -161,15 +175,19 @@ export let frag = `
             } else {
                 float t,u,v;                
                 vec3 N;
-                //Важен путь обхода вершин!
-                if (intersect_triangle(ray, vec3(4.0+sin(iTime),0.0,3.0),vec3(1.0,3.0,3.0),  vec3(7.0,3.0,3.0), t, u, v, N) ) {
+                vec3 tuv=triIntersect(ray, vec3(4.0,2.0+sin(iTime)*2.0,3.0),vec3(2.0,2.0+sin(iTime),3.0), vec3(6.0,2.0+cos(iTime),3.0));
+                
+                float t2 = tuv.x;
+                if ( t2>0.0 ) {
+                    //Важен путь обхода вершин!
+                    //if (intersect_triangle(ray, vec3(4.0,3.0+sin(iTime)*3.0,3.0),vec3(2.0,3.0+sin(iTime),3.0), vec3(6.0,3.0+cos(iTime),3.0), t, u, v, N) ) {
                    pixel.color = vec3(1.0,1.0,1.0);
                 }
             }
 
             if (
-                floor(pixel.coordinate.x*20.0)==floor(iMouse.x) &&
-                floor(pixel.coordinate.y*20.0)==floor(iMouse.y)
+                floor(pixel.coordinate.x*20.0*iScale)==floor(iMouse.x) &&
+                floor(pixel.coordinate.y*20.0*iScale)==floor(iMouse.y)
              ) {
                 pixel.color = vec3(1.0, 0.0, 0.0);
             }
