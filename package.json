@@ -4,20 +4,22 @@
   "description": "## Project setup ``` npm install ```",
   "author": "",
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "dev": "vue-cli-service build --mode development",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack serve"
   },
-  "main": "babel.config.js",
+  "main": "index.js",
   "dependencies": {
-    "@vue/runtime-core": "^3.1.1",
-    "bowser": "^2.11.0",
-    "pixi.js": "^6.5.2"
+    "pixi.js": "^7.0.5"
   },
+  "license": "ISC",
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^4.5.12",
-    "@vue/cli-service": "^4.5.12"
-  },
-  "license": "ISC"
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "html-webpack-plugin": "^5.5.0",
+    "raw-loader": "^4.0.2",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.11.1"
+  }
 }
