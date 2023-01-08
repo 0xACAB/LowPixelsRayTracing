@@ -1,7 +1,7 @@
-import { Application, Assets, Container, Sprite, TextStyle, Text} from 'pixi.js';
-import {TextureSwitcher} from './widgets/textureSwitcher';
+import { Application, Assets, Container, Sprite, TextStyle, Text } from 'pixi.js';
+import { TextureSwitcher } from './widgets/textureSwitcher';
 
-let onload = function(){
+let onload = function() {
     const app = new Application({
         width: 800,
         height: 600,
@@ -41,11 +41,11 @@ let onload = function(){
 
         await Assets.init({ manifest });
         // bundles can be loaded in the background too!
-        Assets.backgroundLoadBundle([/*'load-screen',*/ 'game-screen']);
+        await Assets.backgroundLoadBundle([/*'load-screen',*/ 'game-screen']);
 
-
-        makeGameScreen();
+        await makeGameScreen();
     }
+
     async function makeGameScreen() {
         // Wait here until you get the assets
         // If the user spends enough time in the load screen by the time they reach the game screen
@@ -62,7 +62,6 @@ let onload = function(){
         Telegram_2019_Logo.scale.set(0.33);
         container.addChild(Telegram_2019_Logo);*/
 
-
         const style = new TextStyle({
             fontSize: 20,
             fontFamily: 'Arial, Helvetica, sans-serif',
@@ -78,14 +77,18 @@ let onload = function(){
         container.addChild(text);
 
         let textureSwitcher = new TextureSwitcher({
-            parent: container,
-            scales: [20, 1],
+            container,
+            scales: [
+                { width: 40, height: 20 },
+                { width: 800, height: 400 }
+            ],
         });
         app.ticker.add(() => {
             textureSwitcher.update(app);
         });
         app.ticker.start();
     }
+
     init();
 };
 window.onload = onload;

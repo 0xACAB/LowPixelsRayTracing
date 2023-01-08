@@ -24,8 +24,7 @@ module.exports = {
 		}),
 		new CopyPlugin({
 			patterns: [
-				{ from: 'assets', to: 'assets' },
-				{ from: 'src/shaders', to: 'assets' },
+				{ from: 'assets', to: 'assets' }
 			]
 		})
 	],
