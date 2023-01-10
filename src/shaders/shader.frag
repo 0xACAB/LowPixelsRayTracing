@@ -8,7 +8,6 @@ uniform float iScaleHeight;
 
 const float infini = 1.0 / 0.0;
 
-
 struct Pixel {
     vec2 coordinate;
     vec3 color;
@@ -33,6 +32,11 @@ struct Material {
     vec3 Ke;// emissive color
 };
 
+struct Object {
+    Sphere sphere;
+    Material material;
+};
+
 struct Intersection {
     float t;
     Material material;
@@ -40,6 +44,10 @@ struct Intersection {
     vec3 N;
 };
 
+struct AABB {
+    vec3 min;
+    vec3 max;
+};
 Intersection intersection() {
     Intersection I;
     I.t = infini;
@@ -47,7 +55,7 @@ Intersection intersection() {
 }
 
 Camera camera = Camera(
-vec3(0.0, 0.0, -1.0)
+vec3(1.0, 0.0, -1.0)
 );
 
 Material diffuse(in vec3 Kd) {
@@ -91,7 +99,7 @@ float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
     return t;
 }
 
-vec3 triIntersect(in Ray R, in vec3 v0, in vec3 v1, in vec3 v2){
+vec3 triIntersect(in Ray R, in vec3 v0, in vec3 v1, in vec3 v2) {
     vec3 v1v0 = v1 - v0;
     vec3 v2v0 = v2 - v0;
     vec3 rov0 = R.origin - v0;
@@ -105,10 +113,24 @@ vec3 triIntersect(in Ray R, in vec3 v0, in vec3 v1, in vec3 v2){
     return vec3(t, u, v);
 }
 
-struct Object {
-    Sphere sphere;
-    Material material;
-};
+bool segment_box_intersection(
+in vec3 q1,
+in vec3 dirinv,
+in vec3 boxmin,
+in vec3 boxmax,
+in float t // t of current intersection, used for pruning, see iq's comment.
+) {
+    // References:
+    //    https://tavianator.com/fast-branchless-raybounding-box-intersections/
+    vec3 T1 = dirinv*(boxmin - q1);
+    vec3 T2 = dirinv*(boxmax - q1);
+    vec3 Tmin = min(T1,T2);
+    vec3 Tmax = max(T1,T2);
+    float tmin = max(max(Tmin.x, Tmin.y),Tmin.z);
+    float tmax = min(min(Tmax.x, Tmax.y),Tmax.z);
+    return (tmax >= 0.0) && (tmin <= tmax) && (tmin <= t);
+}
+
 
 Object scene[2];
 
@@ -155,14 +177,23 @@ vec3 rayTrace() {
             pixel.color = result;
         }
     } else {
-        float t, u, v;
-        vec3 N;
-        vec3 tuv=triIntersect(ray, vec3(5.0, 2.0+sin(iTime)*2.0, 3.0), vec3(3.0, 2.0+sin(iTime), 3.0), vec3(7.0, 2.0+cos(iTime), 3.0));
 
-        float t2 = tuv.x;
-        if (t2>0.0) {
-            pixel.color = vec3(1.0, 1.0, 1.0);
+        vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
+        AABB bbox;
+        bbox = AABB(vec3(0.0, 2.5+sin(iTime), 3.0),vec3(2.5, 2.5+cos(iTime), 3.0));
+        if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)){
+
+            pixel.color += vec3(0.4, 0.4, 0.6);
+            float t, u, v;
+            vec3 N;
+            vec3 tuv=triIntersect(ray, vec3(0.0, 2.5+sin(iTime), 3.0), vec3(1.0, 2.5, 3.0), vec3(2.5, 2.5+cos(iTime), 3.0));
+
+            float t2 = tuv.x;
+            if (t2>0.0) {
+                pixel.color = vec3(1.0, 1.0, 1.0);
+            }
         }
+
     }
 
     if (

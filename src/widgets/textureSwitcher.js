@@ -103,7 +103,7 @@ export function TextureSwitcher({ container, scales }) {
             x: 0,
             y: 0,
         };
-        sprite.on('click', function(event) {
+        sprite.on('pointertap', function(event) {
             console.log('PointerTap event');
             mesh.mouse.x = event.global.x;
             mesh.mouse.y = event.global.y;
