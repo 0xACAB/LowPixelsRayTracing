@@ -70,7 +70,7 @@ let onload = function() {
         text.position.set(75, 50);
         text.anchor.set(0, 0.5);
         text.interactive = true;
-        text.buttonMode = true;
+        text.cursor = 'pointer';
         text.on('pointertap', function(event) {
             window.open('https://t.me/xTranscendence', '__blank');
         });
@@ -79,7 +79,7 @@ let onload = function() {
         let textureSwitcher = new TextureSwitcher({
             container,
             scales: [
-                { width: 40*2, height: 20*2 },
+                { width: 40, height: 20},
                 { width: 800, height: 400 }
             ],
         });

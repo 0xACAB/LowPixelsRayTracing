@@ -71,6 +71,11 @@ export function TextureSwitcher({ container, scales }) {
                 iMouse: [0, 0],
                 iScaleWidth: scales[texturesDataIndex].width,
                 iScaleHeight: scales[texturesDataIndex].height,
+                trianglePoints: [
+                    1.0, 2.5, 3.0,
+                    2.0, 2.5, 3.0,
+                    3.5, 2.5, 4.0
+                ]
             },
         });
         const geometry = new Geometry()

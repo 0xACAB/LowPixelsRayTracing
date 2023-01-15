@@ -6,16 +6,13 @@ uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
 
+uniform vec3 trianglePoints[3];
+
 const float infini = 1.0 / 0.0;
 
 struct Pixel {
     vec2 coordinate;
     vec3 color;
-};
-
-struct Sphere {
-    vec3 position;
-    float radius;
 };
 
 struct Camera {
@@ -26,6 +23,17 @@ struct Ray {
     vec3 origin;
     vec3 direction;
 };
+
+struct Sphere {
+    vec3 position;
+    float radius;
+};
+
+struct Triangle {
+    vec3 position;
+    float radius;
+};
+
 
 struct Material {
     vec3 Kd;// diffuse color
@@ -48,6 +56,7 @@ struct AABB {
     vec3 min;
     vec3 max;
 };
+
 Intersection intersection() {
     Intersection I;
     I.t = infini;
@@ -148,7 +157,7 @@ vec3 rayTrace() {
 
     //iMouse.x
     scene[0] = Object(
-    Sphere(vec3(0.5+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0), 0.3),
+    Sphere(vec3(0.0+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0), 0.3),
     diffuse(vec3(1.0, 1.0, 1.0))
     );
 
@@ -180,17 +189,39 @@ vec3 rayTrace() {
 
         vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
         AABB bbox;
-        bbox = AABB(vec3(0.0, 2.5+sin(iTime), 3.0),vec3(2.5, 2.5+cos(iTime), 3.0));
+        bbox = AABB(
+            vec3(min(min(1.0+sin(iTime),2.0),3.5), min(min(2.5+sin(iTime),2.5),2.5+cos(iTime)), min(3.0,min(3.0,4.0))),
+            vec3(max(max(1.0+sin(iTime),2.0),3.5), max(max(2.5+sin(iTime),2.5),2.5+cos(iTime)), max(3.0,max(3.0,4.0)))
+        );
         if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)){
 
-            pixel.color += vec3(0.4, 0.4, 0.6);
             float t, u, v;
             vec3 N;
-            vec3 tuv=triIntersect(ray, vec3(0.0, 2.5+sin(iTime), 3.0), vec3(1.0, 2.5, 3.0), vec3(2.5, 2.5+cos(iTime), 3.0));
+            vec3 tuv=triIntersect(
+                ray,
+                vec3(
+                    trianglePoints[0].x+sin(iTime),
+                    trianglePoints[0].y+sin(iTime),
+                    trianglePoints[0].z
+                ),
+                vec3(
+                    trianglePoints[1].x,
+                    trianglePoints[1].y,
+                    trianglePoints[1].z
+                ),
+                vec3(
+                    trianglePoints[2].x,
+                    trianglePoints[2].y+cos(iTime),
+                    trianglePoints[2].z
+                )
+            );
 
             float t2 = tuv.x;
             if (t2>0.0) {
                 pixel.color = vec3(1.0, 1.0, 1.0);
+            } else {
+                //Цвет AABB
+                pixel.color += vec3(0.4, 0.4, 0.6);
             }
         }
 
