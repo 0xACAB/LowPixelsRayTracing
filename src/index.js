@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Sprite, TextStyle, Text } from 'pixi.js';
+import { Application, Assets, Container, TextStyle, Text } from 'pixi.js';
 import { TextureSwitcher } from './widgets/textureSwitcher';
 
 let onload = function() {
@@ -79,9 +79,9 @@ let onload = function() {
         let textureSwitcher = new TextureSwitcher({
             container,
             scales: [
-                { width: 40, height: 20},
+                { width: 40*2, height: 20*2},
                 { width: 800, height: 400 }
-            ],
+            ]
         });
         app.ticker.add(() => {
             textureSwitcher.update(app);

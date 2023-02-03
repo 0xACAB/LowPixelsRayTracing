@@ -12,7 +12,6 @@ import {
 } from 'pixi.js';
 import vert from '../shaders/shader.vert';
 import frag from '../shaders/shader.frag';
-
 /**
  *
  * @param container - контейнер для компонента

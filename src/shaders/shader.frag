@@ -24,26 +24,21 @@ struct Ray {
     vec3 direction;
 };
 
-struct Sphere {
-    vec3 position;
-    float radius;
-};
-
-struct Triangle {
-    vec3 position;
-    float radius;
-};
-
-
 struct Material {
     vec3 Kd;// diffuse color
     vec3 Ke;// emissive color
 };
 
-struct Object {
-    Sphere sphere;
+struct Sphere {
+    vec3 position;
+    float radius;
     Material material;
 };
+
+/*struct Triangle {
+    vec3 position;
+    float radius;
+};*/
 
 struct Intersection {
     float t;
@@ -141,7 +136,7 @@ in float t // t of current intersection, used for pruning, see iq's comment.
 }
 
 
-Object scene[2];
+Sphere scene[2];
 
 vec3 rayTrace() {
     //Забираем цвет с исходной текстуры
@@ -156,18 +151,19 @@ vec3 rayTrace() {
     Intersection I = intersection();
 
     //iMouse.x
-    scene[0] = Object(
-    Sphere(vec3(0.0+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0), 0.3),
-    diffuse(vec3(1.0, 1.0, 1.0))
+    scene[0] = Sphere(
+        vec3(0.0+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0),
+        0.3,
+        diffuse(vec3(1.0, 1.0, 1.0))
     );
-
-    scene[1] = Object(
-    Sphere(vec3(1.0, 3.5, -3.0), 0.00),
-    light(vec3(1.0, 1.0, 1.0))
+    scene[1] = Sphere(
+        vec3(1.0, 3.5, -3.0),
+        0.00,
+        light(vec3(1.0, 1.0, 1.0))
     );
 
     Material material;
-    float ray_length = computeSphereIntersection(ray, scene[0].sphere);
+    float ray_length = computeSphereIntersection(ray, scene[0]);
     if (ray_length > 0.0 && ray_length < infini) {
         material = scene[0].material;
 
@@ -178,7 +174,7 @@ vec3 rayTrace() {
             for (int i=0; i<2; ++i) {
                 //Для всех сфер являющихся источниками света
                 if (scene[i].material.Ke != vec3(0.0, 0.0, 0.0)) {
-                    vec3 E = scene[i].sphere.position - ray.origin;
+                    vec3 E = scene[i].position - ray.origin;
                     float lamb = max(0.0, dot(E, ray.direction) / length(E));
                     result += lamb * material.Kd * scene[i].material.Ke;
                 }
