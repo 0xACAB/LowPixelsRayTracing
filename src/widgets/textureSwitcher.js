@@ -51,6 +51,7 @@ function Tumbler({ container, onChange, startState }) {
 export function TextureSwitcher({ container, scales }) {
     this.container = new Container();
     container.addChild(this.container);
+    const maxResolutionIndex = 1;
     this.texturesData = [0, 1].map((_, texturesDataIndex) => {
         /*let buff = new Uint8Array(width * height * 4);
         buff.forEach((_, bufferIndex) => {
@@ -62,13 +63,13 @@ export function TextureSwitcher({ container, scales }) {
         const width = scales[texturesDataIndex].width;
         const height = scales[texturesDataIndex].height;
         const texture = Texture.fromBuffer(/*buff*/null, width, height);
-
+        const ratio = width / height;
         const material = new MeshMaterial(texture, {
             program: Program.from(vert, frag),
             uniforms: {
                 iTime: 0,
                 iMouse: [0, 0],
-                iScaleWidth: scales[texturesDataIndex].width,
+                iScaleWidth: scales[texturesDataIndex].width/ratio,
                 iScaleHeight: scales[texturesDataIndex].height,
                 trianglePoints: [
                     1.0, 2.5, 3.0,
@@ -77,6 +78,8 @@ export function TextureSwitcher({ container, scales }) {
                 ]
             },
         });
+
+
         const geometry = new Geometry()
             .addAttribute('aVertexPosition',
                 [
@@ -88,8 +91,8 @@ export function TextureSwitcher({ container, scales }) {
             .addAttribute('aUvs',
                 [
                     0, 0,
-                    width / height, 0,
-                    width / height, 1,
+                    ratio, 0,
+                    ratio, 1,
                     0, 1,
                 ], 2)
             .addIndex([0, 1, 2, 0, 2, 3]);
@@ -98,19 +101,22 @@ export function TextureSwitcher({ container, scales }) {
         const renderTexture = new RenderTexture(brt);
 
         const sprite = new Sprite(renderTexture);
-        sprite.anchor.set(0.5, 0.5);
-        sprite.position.set(400, 300);
-        sprite.scale.set(800 / scales[texturesDataIndex].width, 400 / scales[texturesDataIndex].height);
+        sprite.position.set(0, 100);
+        const spriteScale = {
+            x: scales[maxResolutionIndex].width / scales[texturesDataIndex].width,
+            y: scales[maxResolutionIndex].height / scales[texturesDataIndex].height
+        }
+        sprite.scale.set(spriteScale.x, spriteScale.y);
         sprite.interactive = true;
-        sprite.buttonMode = true;
         mesh.mouse = {
             x: 0,
             y: 0,
         };
         sprite.on('pointertap', function(event) {
             console.log('PointerTap event');
-            mesh.mouse.x = event.global.x;
-            mesh.mouse.y = event.global.y;
+            mesh.mouse.x = (event.global.x-event.target.position.x)/spriteScale.x;
+            mesh.mouse.y = (event.global.y-event.target.position.y)/spriteScale.y;
+
 
             console.log('X', mesh.mouse.x, 'Y', mesh.mouse.y);
         });
@@ -135,5 +141,4 @@ TextureSwitcher.prototype.update = function(app) {
     this.mesh.shader.uniforms.iTime = app.ticker.lastTime / 500;
     this.mesh.shader.uniforms.iMouse = [this.mesh.mouse.x, this.mesh.mouse.y];
     app.renderer.render(this.mesh, { renderTexture: this.renderTexture });
-
 };

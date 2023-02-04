@@ -5,7 +5,6 @@ uniform float iTime;
 uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
-
 uniform vec3 trianglePoints[3];
 
 const float infini = 1.0 / 0.0;
@@ -42,9 +41,9 @@ struct Sphere {
 
 struct Intersection {
     float t;
-    Material material;
-    vec3 P;
-    vec3 N;
+//vec3 P;
+//vec3 N;
+//Material material;
 };
 
 struct AABB {
@@ -122,16 +121,16 @@ in vec3 q1,
 in vec3 dirinv,
 in vec3 boxmin,
 in vec3 boxmax,
-in float t // t of current intersection, used for pruning, see iq's comment.
+in float t// t of current intersection, used for pruning, see iq's comment.
 ) {
     // References:
     //    https://tavianator.com/fast-branchless-raybounding-box-intersections/
     vec3 T1 = dirinv*(boxmin - q1);
     vec3 T2 = dirinv*(boxmax - q1);
-    vec3 Tmin = min(T1,T2);
-    vec3 Tmax = max(T1,T2);
-    float tmin = max(max(Tmin.x, Tmin.y),Tmin.z);
-    float tmax = min(min(Tmax.x, Tmax.y),Tmax.z);
+    vec3 Tmin = min(T1, T2);
+    vec3 Tmax = max(T1, T2);
+    float tmin = max(max(Tmin.x, Tmin.y), Tmin.z);
+    float tmax = min(min(Tmax.x, Tmax.y), Tmax.z);
     return (tmax >= 0.0) && (tmin <= tmax) && (tmin <= t);
 }
 
@@ -140,6 +139,7 @@ Sphere scene[2];
 
 vec3 rayTrace() {
     //Забираем цвет с исходной текстуры
+    //Здесь использовать texture2D и uSampler не обязательно, можно просто vec4(0.0,0.0,0.0,0.0)
     vec4 uSampler = texture2D(uSampler, vUvs.xy).rgba;
 
     Pixel pixel = Pixel(
@@ -152,14 +152,14 @@ vec3 rayTrace() {
 
     //iMouse.x
     scene[0] = Sphere(
-        vec3(0.0+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0),
-        0.3,
-        diffuse(vec3(1.0, 1.0, 1.0))
+    vec3(0.0+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0),
+    0.3,
+    diffuse(vec3(1.0, 1.0, 1.0))
     );
     scene[1] = Sphere(
-        vec3(1.0, 3.5, -3.0),
-        0.00,
-        light(vec3(1.0, 1.0, 1.0))
+    vec3(1.0, 3.5, -3.0),
+    0.00,
+    light(vec3(1.0, 1.0, 1.0))
     );
 
     Material material;
@@ -186,30 +186,30 @@ vec3 rayTrace() {
         vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
         AABB bbox;
         bbox = AABB(
-            vec3(min(min(1.0+sin(iTime),2.0),3.5), min(min(2.5+sin(iTime),2.5),2.5+cos(iTime)), min(3.0,min(3.0,4.0))),
-            vec3(max(max(1.0+sin(iTime),2.0),3.5), max(max(2.5+sin(iTime),2.5),2.5+cos(iTime)), max(3.0,max(3.0,4.0)))
+        vec3(min(min(1.0+sin(iTime), 2.0), 3.5), min(min(2.5+sin(iTime), 2.5), 2.5+cos(iTime)), min(3.0, min(3.0, 4.0))),
+        vec3(max(max(1.0+sin(iTime), 2.0), 3.5), max(max(2.5+sin(iTime), 2.5), 2.5+cos(iTime)), max(3.0, max(3.0, 4.0)))
         );
         if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)){
 
             float t, u, v;
             vec3 N;
             vec3 tuv=triIntersect(
-                ray,
-                vec3(
-                    trianglePoints[0].x+sin(iTime),
-                    trianglePoints[0].y+sin(iTime),
-                    trianglePoints[0].z
-                ),
-                vec3(
-                    trianglePoints[1].x,
-                    trianglePoints[1].y,
-                    trianglePoints[1].z
-                ),
-                vec3(
-                    trianglePoints[2].x,
-                    trianglePoints[2].y+cos(iTime),
-                    trianglePoints[2].z
-                )
+            ray,
+            vec3(
+            trianglePoints[0].x+sin(iTime),
+            trianglePoints[0].y+sin(iTime),
+            trianglePoints[0].z
+            ),
+            vec3(
+            trianglePoints[1].x,
+            trianglePoints[1].y,
+            trianglePoints[1].z
+            ),
+            vec3(
+            trianglePoints[2].x,
+            trianglePoints[2].y+cos(iTime),
+            trianglePoints[2].z
+            )
             );
 
             float t2 = tuv.x;
@@ -222,10 +222,9 @@ vec3 rayTrace() {
         }
 
     }
-
     if (
-    floor(pixel.coordinate.x*20.0*iScaleWidth)==floor(iMouse.x) &&
-    floor(pixel.coordinate.y*20.0*iScaleHeight)==floor(iMouse.y)
+    floor(pixel.coordinate.x*iScaleWidth)==floor(iMouse.x) &&
+    floor(pixel.coordinate.y*iScaleHeight)==floor(iMouse.y)
     ) {
         pixel.color = vec3(1.0, 0.0, 0.0);
     }
