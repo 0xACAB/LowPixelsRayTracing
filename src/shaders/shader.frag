@@ -1,11 +1,17 @@
 varying vec3 vUvs;
 
+const int pointsCount = 4;
+const int trianglesCount = 2;
+
 uniform sampler2D uSampler;
 uniform float iTime;
 uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
-uniform vec3 trianglePoints[3];
+uniform vec3 meshPoints[pointsCount];
+uniform int meshTrianglesData[3*trianglesCount];
+uniform vec3 meshTrianglesColors[3*trianglesCount];
+
 
 const float infini = 1.0 / 0.0;
 
@@ -34,10 +40,12 @@ struct Sphere {
     Material material;
 };
 
-/*struct Triangle {
-    vec3 position;
-    float radius;
-};*/
+struct Triangle {
+    vec3 points[3];
+    int indexes[3];
+    Material material;
+};
+
 
 struct Intersection {
     float t;
@@ -58,7 +66,7 @@ Intersection intersection() {
 }
 
 Camera camera = Camera(
-vec3(1.0, 0.0, -1.0)
+vec3(1.0, 0.0, -5.0)
 );
 
 Material diffuse(in vec3 Kd) {
@@ -75,6 +83,22 @@ Ray initRay(in Pixel pixel, in Camera camera) {
     camera.eye,
     direction
     );
+}
+
+Triangle triangles[trianglesCount];
+
+vec3 getTrianglePointByIndex(int pointIndex) {
+    for (int currentPointIndex=0; currentPointIndex<pointsCount; currentPointIndex++) {
+        if (currentPointIndex == pointIndex) return meshPoints[currentPointIndex];
+    }
+    return vec3(-999.0,-999.0,-999.0);
+}
+
+vec3 getTriangleColorByIndex(int triangleIndex) {
+    for (int currentTriangleIndex=0; currentTriangleIndex<trianglesCount; currentTriangleIndex++) {
+        if (currentTriangleIndex == triangleIndex) return meshTrianglesColors[currentTriangleIndex];
+    }
+    return vec3(-999.0,-999.0,-999.0);
 }
 
 float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
@@ -137,6 +161,7 @@ in float t// t of current intersection, used for pruning, see iq's comment.
 
 Sphere scene[2];
 
+
 vec3 rayTrace() {
     //Забираем цвет с исходной текстуры
     //Здесь использовать texture2D и uSampler не обязательно, можно просто vec4(0.0,0.0,0.0,0.0)
@@ -150,14 +175,13 @@ vec3 rayTrace() {
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
 
-    //iMouse.x
     scene[0] = Sphere(
-    vec3(0.0+sin(iTime) * 0.25, 0.5+cos(iTime) * 0.25, 1.0),
+    vec3(1.0-cos(iTime), 1.0, 15.0-sin(iTime)*10.5),
     0.3,
     diffuse(vec3(1.0, 1.0, 1.0))
     );
     scene[1] = Sphere(
-    vec3(1.0, 3.5, -3.0),
+    vec3(1.0, 3.5-cos(iTime)*10.5, -3.0),
     0.00,
     light(vec3(1.0, 1.0, 1.0))
     );
@@ -182,44 +206,77 @@ vec3 rayTrace() {
             pixel.color = result;
         }
     } else {
+        //Здесь нужно пересмотреть проверку, а то так сфера всегда на переднем плане получается
 
-        vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
-        AABB bbox;
-        bbox = AABB(
-        vec3(min(min(1.0+sin(iTime), 2.0), 3.5), min(min(2.5+sin(iTime), 2.5), 2.5+cos(iTime)), min(3.0, min(3.0, 4.0))),
-        vec3(max(max(1.0+sin(iTime), 2.0), 3.5), max(max(2.5+sin(iTime), 2.5), 2.5+cos(iTime)), max(3.0, max(3.0, 4.0)))
-        );
-        if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)){
+        for (int i=0; i<trianglesCount; ++i) {
+            triangles[i].material = Material(vec3(1.0,1.0,1.0), getTriangleColorByIndex(i));
 
-            float t, u, v;
-            vec3 N;
-            vec3 tuv=triIntersect(
-            ray,
+            triangles[i].indexes[0] = meshTrianglesData[i*2+0];
+            triangles[i].indexes[1] = meshTrianglesData[i*2+1];
+            triangles[i].indexes[2] = meshTrianglesData[i*2+2];
+
+            triangles[i].points[0] = getTrianglePointByIndex(triangles[i].indexes[0]);
+            triangles[i].points[1] = getTrianglePointByIndex(triangles[i].indexes[1]);
+            triangles[i].points[2] = getTrianglePointByIndex(triangles[i].indexes[2]);
+
+            triangles[i].points[0].x = triangles[i].points[0].x;
+            triangles[i].points[0].y = triangles[i].points[0].y;
+            triangles[i].points[1].x = triangles[i].points[1].x;
+            triangles[i].points[1].y = triangles[i].points[1].y;
+            triangles[i].points[2].x = triangles[i].points[2].x;
+            triangles[i].points[2].y = triangles[i].points[2].y;
+
+
+            triangles[i].points[0].z = triangles[i].points[0].z-cos(iTime)*5.5;
+            triangles[i].points[1].z = triangles[i].points[1].z-cos(iTime)*5.5;
+            triangles[i].points[2].z = triangles[i].points[2].z-cos(iTime)*5.5;
+
+            vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
+            AABB bbox;
+            bbox = AABB(
             vec3(
-            trianglePoints[0].x+sin(iTime),
-            trianglePoints[0].y+sin(iTime),
-            trianglePoints[0].z
+            min(min(triangles[i].points[0].x, triangles[i].points[1].x), triangles[i].points[2].x),
+            min(min(triangles[i].points[0].y, triangles[i].points[1].y), triangles[i].points[2].y),
+            min(min(triangles[i].points[0].z, triangles[i].points[1].z), triangles[i].points[2].z)
             ),
             vec3(
-            trianglePoints[1].x,
-            trianglePoints[1].y,
-            trianglePoints[1].z
-            ),
-            vec3(
-            trianglePoints[2].x,
-            trianglePoints[2].y+cos(iTime),
-            trianglePoints[2].z
-            )
-            );
+            max(max(triangles[i].points[0].x, triangles[i].points[1].x), triangles[i].points[2].x),
+            max(max(triangles[i].points[0].y, triangles[i].points[1].y), triangles[i].points[2].y),
+            max(max(triangles[i].points[0].z, triangles[i].points[1].z), triangles[i].points[2].z)
+            ));
+            if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)){
 
-            float t2 = tuv.x;
-            if (t2>0.0) {
-                pixel.color = vec3(1.0, 1.0, 1.0);
-            } else {
-                //Цвет AABB
-                pixel.color += vec3(0.4, 0.4, 0.6);
+                float t, u, v;
+                vec3 N;
+                vec3 tuv=triIntersect(
+                ray,
+                vec3(
+                triangles[i].points[0].x,
+                triangles[i].points[0].y,
+                triangles[i].points[0].z
+                ),
+                vec3(
+                triangles[i].points[1].x,
+                triangles[i].points[1].y,
+                triangles[i].points[1].z
+                ),
+                vec3(
+                triangles[i].points[2].x,
+                triangles[i].points[2].y,
+                triangles[i].points[2].z
+                )
+                );
+
+                float t2 = tuv.x;
+                if (t2>0.0) {
+                    pixel.color = triangles[i].material.Ke;
+                } else {
+                    //Цвет AABB
+                    pixel.color += vec3(0.4, 0.4, 0.6);
+                }
             }
         }
+
 
     }
     if (

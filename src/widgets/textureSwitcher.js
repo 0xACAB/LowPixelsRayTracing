@@ -12,6 +12,7 @@ import {
 } from 'pixi.js';
 import vert from '../shaders/shader.vert';
 import frag from '../shaders/shader.frag';
+
 /**
  *
  * @param container - контейнер для компонента
@@ -69,16 +70,48 @@ export function TextureSwitcher({ container, scales }) {
             uniforms: {
                 iTime: 0,
                 iMouse: [0, 0],
-                iScaleWidth: scales[texturesDataIndex].width/ratio,
+                iScaleWidth: scales[texturesDataIndex].width / ratio,
                 iScaleHeight: scales[texturesDataIndex].height,
-                trianglePoints: [
-                    1.0, 2.5, 3.0,
-                    2.0, 2.5, 3.0,
-                    3.5, 2.5, 4.0
+                meshPoints:[
+                    5.0+1.0, 2.5+3.5, 50.0,
+                    0.0+1.0, 2.5+3.5, 50.0,
+                    0.0+1.0, -2.5+3.5, 50.0,
+                    5.0+1.0, -2.5+3.5, 50.0,
+
+                    /*0.105323, -0.354834, -0.073347,
+                    0.111377, -0.248803, 0.002512,
+                    0.082688, -0.251621, 0.012655,
+
+                    0.039806, -0.344149, 0.022447,
+                    0.067045, -0.339329, 0.015606,
+                    0.066835, -0.255360, 0.033308,
+
+                    0.028103, -0.266495, 0.045690,
+                    0.044970, -0.418859, -0.022001,
+                    0.065286, -0.415543, -0.026058,
+
+                    -0.019112, -0.440346, 0.023551,
+                    0.001000, -0.439791, 0.020621,
+                    0.004008, -0.348000, 0.046143,
+
+                    -0.027999, -0.351921, 0.050459,
+                    0.005042, -0.271158, 0.053398,
+                    -0.039202, -0.274230, 0.059800*/
+                ],
+                meshTrianglesData: [
+                    0, 1, 2,
+                    3, 0, 2
+                    /*6, 7, 8,
+                    9, 10, 11,
+                    12, 13, 14,
+                    15, 16, 17*/
+                ],
+                meshTrianglesColors: [
+                    1.0, 0.0, 0.0,
+                    0.0, 0.0, 1.0
                 ]
             },
         });
-
 
         const geometry = new Geometry()
             .addAttribute('aVertexPosition',
@@ -104,8 +137,8 @@ export function TextureSwitcher({ container, scales }) {
         sprite.position.set(0, 100);
         const spriteScale = {
             x: scales[maxResolutionIndex].width / scales[texturesDataIndex].width,
-            y: scales[maxResolutionIndex].height / scales[texturesDataIndex].height
-        }
+            y: scales[maxResolutionIndex].height / scales[texturesDataIndex].height,
+        };
         sprite.scale.set(spriteScale.x, spriteScale.y);
         sprite.interactive = true;
         mesh.mouse = {
@@ -114,9 +147,8 @@ export function TextureSwitcher({ container, scales }) {
         };
         sprite.on('pointertap', function(event) {
             console.log('PointerTap event');
-            mesh.mouse.x = (event.global.x-event.target.position.x)/spriteScale.x;
-            mesh.mouse.y = (event.global.y-event.target.position.y)/spriteScale.y;
-
+            mesh.mouse.x = (event.global.x - event.target.position.x) / spriteScale.x;
+            mesh.mouse.y = (event.global.y - event.target.position.y) / spriteScale.y;
 
             console.log('X', mesh.mouse.x, 'Y', mesh.mouse.y);
         });
