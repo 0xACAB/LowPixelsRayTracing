@@ -1,7 +1,7 @@
 varying vec3 vUvs;
 
-const int pointsCount = 4;
-const int trianglesCount = 2;
+const int pointsCount = 8;
+const int trianglesCount = 10;
 
 uniform sampler2D uSampler;
 uniform float iTime;
@@ -11,7 +11,6 @@ uniform float iScaleHeight;
 uniform vec3 meshPoints[pointsCount];
 uniform int meshTrianglesData[3*trianglesCount];
 uniform vec3 meshTrianglesColors[3*trianglesCount];
-
 
 const float infini = 1.0 / 0.0;
 
@@ -171,12 +170,12 @@ vec3 rayTrace() {
     vUvs.xy,
     uSampler.rgb
     );
-
+    //camera.eye.x=-cos(iTime);
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
 
     scene[0] = Sphere(
-    vec3(1.0-cos(iTime), 1.0, 15.0-sin(iTime)*10.5),
+    vec3(1.0-cos(iTime), 2.0, 25.0-sin(iTime)*10.5),
     0.3,
     diffuse(vec3(1.0, 1.0, 1.0))
     );
@@ -211,9 +210,9 @@ vec3 rayTrace() {
         for (int i=0; i<trianglesCount; ++i) {
             triangles[i].material = Material(vec3(1.0,1.0,1.0), getTriangleColorByIndex(i));
 
-            triangles[i].indexes[0] = meshTrianglesData[i*2+0];
-            triangles[i].indexes[1] = meshTrianglesData[i*2+1];
-            triangles[i].indexes[2] = meshTrianglesData[i*2+2];
+            triangles[i].indexes[0] = meshTrianglesData[i*3+0];
+            triangles[i].indexes[1] = meshTrianglesData[i*3+1];
+            triangles[i].indexes[2] = meshTrianglesData[i*3+2];
 
             triangles[i].points[0] = getTrianglePointByIndex(triangles[i].indexes[0]);
             triangles[i].points[1] = getTrianglePointByIndex(triangles[i].indexes[1]);
@@ -227,9 +226,9 @@ vec3 rayTrace() {
             triangles[i].points[2].y = triangles[i].points[2].y;
 
 
-            triangles[i].points[0].z = triangles[i].points[0].z-cos(iTime)*5.5;
-            triangles[i].points[1].z = triangles[i].points[1].z-cos(iTime)*5.5;
-            triangles[i].points[2].z = triangles[i].points[2].z-cos(iTime)*5.5;
+            triangles[i].points[0].z = triangles[i].points[0].z;
+            triangles[i].points[1].z = triangles[i].points[1].z;
+            triangles[i].points[2].z = triangles[i].points[2].z;
 
             vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
             AABB bbox;
@@ -272,7 +271,7 @@ vec3 rayTrace() {
                     pixel.color = triangles[i].material.Ke;
                 } else {
                     //Цвет AABB
-                    pixel.color += vec3(0.4, 0.4, 0.6);
+                    //pixel.color += vec3(0.4, 0.4, 0.6);
                 }
             }
         }
