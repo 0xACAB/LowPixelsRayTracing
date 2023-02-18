@@ -74,14 +74,14 @@ export function TextureSwitcher({ container, scales }) {
                 iScaleHeight: scales[texturesDataIndex].height,
                 meshPoints:[
                     //Cornell box
-                    2.5+1.0, 2.5+3.5, 50.0,
-                    2.5+1.0, 2.5+3.5, 30.0,
-                    2.5+1.0, -2.5+3.5, 30.0,
-                    2.5+1.0, -2.5+3.5, 50.0,
-                    -2.5+1.0, 2.5+3.5, 50.0,
-                    -2.5+1.0, -2.5+3.5, 50.0,
-                    -2.5+1.0, 2.5+3.5, 30.0,
-                    -2.5+1.0, -2.5+3.5, 30.0
+                    2.5, 2.5, -50.0,
+                    2.5, 2.5, -30.0,
+                    2.5, -2.5, -30.0,
+                    2.5, -2.5, -50.0,
+                    -2.5, 2.5, -50.0,
+                    -2.5, -2.5, -50.0,
+                    -2.5, 2.5, -30.0,
+                    -2.5, -2.5, -30.0
                 ],
                 meshTrianglesData: [
                     //A white back wall
@@ -97,7 +97,6 @@ export function TextureSwitcher({ container, scales }) {
                     //top
                     7, 3, 2,
                     7, 3, 5,
-
                     //bottom
                     6, 4, 0,
                     6, 0, 1,
@@ -108,20 +107,16 @@ export function TextureSwitcher({ container, scales }) {
                     //A white back wall
                     1.0, 1.0, 1.0,
                     1.0, 1.0, 1.0,
-
                     //A green right wall
                     0.0, 1.0, 0.0,
                     0.0, 1.0, 0.0,
-
                     //A red left wall
                     1.0, 0.0, 0.0,
                     1.0, 0.0, 0.0,
-
                     //A white floor
                     //top
                     1.0, 1.0, 1.0,
                     1.0, 1.0, 1.0,
-
                     //bottom
                     1.0, 1.0, 1.0,
                     1.0, 1.0, 1.0,
@@ -139,10 +134,10 @@ export function TextureSwitcher({ container, scales }) {
                 ], 2)
             .addAttribute('aUvs',
                 [
-                    0, 0,
-                    ratio, 0,
-                    ratio, 1,
-                    0, 1,
+                    -1, 0,
+                    ratio-1, 0,
+                    ratio-1, 1,
+                    -1, 1,
                 ], 2)
             .addIndex([0, 1, 2, 0, 2, 3]);
         const mesh = new Mesh(geometry, material);

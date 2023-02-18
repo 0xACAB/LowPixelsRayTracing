@@ -65,7 +65,7 @@ Intersection intersection() {
 }
 
 Camera camera = Camera(
-vec3(1.0, 0.0, -5.0)
+vec3(0.0-cos(iTime)*0.5, 0.5, 5.0-sin(iTime)*0.5)
 );
 
 Material diffuse(in vec3 Kd) {
@@ -78,26 +78,22 @@ Material light(in vec3 Ke) {
 
 Ray initRay(in Pixel pixel, in Camera camera) {
     vec3 direction = normalize(vec3(pixel.coordinate.xy, 0.0) - camera.eye);
-    return Ray(
-    camera.eye,
-    direction
-    );
+    return Ray(camera.eye, direction);
 }
 
-Triangle triangles[trianglesCount];
 
 vec3 getTrianglePointByIndex(int pointIndex) {
     for (int currentPointIndex=0; currentPointIndex<pointsCount; currentPointIndex++) {
         if (currentPointIndex == pointIndex) return meshPoints[currentPointIndex];
     }
-    return vec3(-999.0,-999.0,-999.0);
+    return vec3(-999.0, -999.0, -999.0);
 }
 
 vec3 getTriangleColorByIndex(int triangleIndex) {
     for (int currentTriangleIndex=0; currentTriangleIndex<trianglesCount; currentTriangleIndex++) {
         if (currentTriangleIndex == triangleIndex) return meshTrianglesColors[currentTriangleIndex];
     }
-    return vec3(-999.0,-999.0,-999.0);
+    return vec3(-999.0, -999.0, -999.0);
 }
 
 float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
@@ -158,6 +154,7 @@ in float t// t of current intersection, used for pruning, see iq's comment.
 }
 
 
+Triangle triangles[trianglesCount];
 Sphere scene[2];
 
 
@@ -167,20 +164,20 @@ vec3 rayTrace() {
     vec4 uSampler = texture2D(uSampler, vUvs.xy).rgba;
 
     Pixel pixel = Pixel(
-    vUvs.xy,
+    vec2(-vUvs.x, vUvs.y),
     uSampler.rgb
     );
-    //camera.eye.x=-cos(iTime);
+    //camera.eye.y=-sin(iTime)*0.1;
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
 
     scene[0] = Sphere(
-    vec3(1.0-cos(iTime), 2.0, 25.0-sin(iTime)*10.5),
+    vec3(-cos(iTime), 0.0, -25.0+sin(iTime)*10.5),
     0.3,
     diffuse(vec3(1.0, 1.0, 1.0))
     );
     scene[1] = Sphere(
-    vec3(1.0, 3.5-cos(iTime)*10.5, -3.0),
+    vec3(1.0, 3.5, -3.0),
     0.00,
     light(vec3(1.0, 1.0, 1.0))
     );
@@ -207,73 +204,58 @@ vec3 rayTrace() {
     } else {
         //Здесь нужно пересмотреть проверку, а то так сфера всегда на переднем плане получается
 
-        for (int i=0; i<trianglesCount; ++i) {
-            triangles[i].material = Material(vec3(1.0,1.0,1.0), getTriangleColorByIndex(i));
 
-            triangles[i].indexes[0] = meshTrianglesData[i*3+0];
-            triangles[i].indexes[1] = meshTrianglesData[i*3+1];
-            triangles[i].indexes[2] = meshTrianglesData[i*3+2];
+        for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
+            triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), getTriangleColorByIndex(triangleIndex));
+            for (int trianglePointIndex=0; trianglePointIndex<3;++trianglePointIndex) {
+                triangles[triangleIndex].indexes[trianglePointIndex] = meshTrianglesData[triangleIndex*3+trianglePointIndex];
+                triangles[triangleIndex].points[trianglePointIndex] = getTrianglePointByIndex(triangles[triangleIndex].indexes[trianglePointIndex]);
+                triangles[triangleIndex].points[trianglePointIndex].x = triangles[triangleIndex].points[trianglePointIndex].x;
+                triangles[triangleIndex].points[trianglePointIndex].y = triangles[triangleIndex].points[trianglePointIndex].y;
+                triangles[triangleIndex].points[trianglePointIndex].z = triangles[triangleIndex].points[trianglePointIndex].z;
+            }
 
-            triangles[i].points[0] = getTrianglePointByIndex(triangles[i].indexes[0]);
-            triangles[i].points[1] = getTrianglePointByIndex(triangles[i].indexes[1]);
-            triangles[i].points[2] = getTrianglePointByIndex(triangles[i].indexes[2]);
-
-            triangles[i].points[0].x = triangles[i].points[0].x;
-            triangles[i].points[0].y = triangles[i].points[0].y;
-            triangles[i].points[1].x = triangles[i].points[1].x;
-            triangles[i].points[1].y = triangles[i].points[1].y;
-            triangles[i].points[2].x = triangles[i].points[2].x;
-            triangles[i].points[2].y = triangles[i].points[2].y;
-
-
-            triangles[i].points[0].z = triangles[i].points[0].z;
-            triangles[i].points[1].z = triangles[i].points[1].z;
-            triangles[i].points[2].z = triangles[i].points[2].z;
-
-            vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
+            /*vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
             AABB bbox;
             bbox = AABB(
             vec3(
-            min(min(triangles[i].points[0].x, triangles[i].points[1].x), triangles[i].points[2].x),
-            min(min(triangles[i].points[0].y, triangles[i].points[1].y), triangles[i].points[2].y),
-            min(min(triangles[i].points[0].z, triangles[i].points[1].z), triangles[i].points[2].z)
+            min(min(triangles[triangleIndex].points[0].x, triangles[triangleIndex].points[1].x), triangles[triangleIndex].points[2].x),
+            min(min(triangles[triangleIndex].points[0].y, triangles[triangleIndex].points[1].y), triangles[triangleIndex].points[2].y),
+            min(min(triangles[triangleIndex].points[0].z, triangles[triangleIndex].points[1].z), triangles[triangleIndex].points[2].z)
             ),
             vec3(
-            max(max(triangles[i].points[0].x, triangles[i].points[1].x), triangles[i].points[2].x),
-            max(max(triangles[i].points[0].y, triangles[i].points[1].y), triangles[i].points[2].y),
-            max(max(triangles[i].points[0].z, triangles[i].points[1].z), triangles[i].points[2].z)
-            ));
-            if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)){
+            max(max(triangles[triangleIndex].points[0].x, triangles[triangleIndex].points[1].x), triangles[triangleIndex].points[2].x),
+            max(max(triangles[triangleIndex].points[0].y, triangles[triangleIndex].points[1].y), triangles[triangleIndex].points[2].y),
+            max(max(triangles[triangleIndex].points[0].z, triangles[triangleIndex].points[1].z), triangles[triangleIndex].points[2].z)
+            ));*/
+            //if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)){
+            vec3 tuv=triIntersect(
+            ray,
+            vec3(
+            triangles[triangleIndex].points[0].x,
+            triangles[triangleIndex].points[0].y,
+            triangles[triangleIndex].points[0].z
+            ),
+            vec3(
+            triangles[triangleIndex].points[1].x,
+            triangles[triangleIndex].points[1].y,
+            triangles[triangleIndex].points[1].z
+            ),
+            vec3(
+            triangles[triangleIndex].points[2].x,
+            triangles[triangleIndex].points[2].y,
+            triangles[triangleIndex].points[2].z
+            )
+            );
 
-                float t, u, v;
-                vec3 N;
-                vec3 tuv=triIntersect(
-                ray,
-                vec3(
-                triangles[i].points[0].x,
-                triangles[i].points[0].y,
-                triangles[i].points[0].z
-                ),
-                vec3(
-                triangles[i].points[1].x,
-                triangles[i].points[1].y,
-                triangles[i].points[1].z
-                ),
-                vec3(
-                triangles[i].points[2].x,
-                triangles[i].points[2].y,
-                triangles[i].points[2].z
-                )
-                );
-
-                float t2 = tuv.x;
-                if (t2>0.0) {
-                    pixel.color = triangles[i].material.Ke;
-                } else {
-                    //Цвет AABB
-                    //pixel.color += vec3(0.4, 0.4, 0.6);
-                }
+            float t2 = tuv.x;
+            if (t2>0.0) {
+                pixel.color = triangles[triangleIndex].material.Ke;
+            } else {
+                //Цвет AABB
+                //pixel.color += vec3(0.4, 0.4, 0.6);
             }
+            //}
         }
 
 
@@ -282,7 +264,7 @@ vec3 rayTrace() {
     floor(pixel.coordinate.x*iScaleWidth)==floor(iMouse.x) &&
     floor(pixel.coordinate.y*iScaleHeight)==floor(iMouse.y)
     ) {
-        pixel.color = vec3(1.0, 0.0, 0.0);
+        pixel.color = vec3(0.0, 0.0, 1.0);
     }
     return pixel.color;
 }
