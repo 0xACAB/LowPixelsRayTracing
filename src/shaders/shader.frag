@@ -65,7 +65,7 @@ Intersection intersection() {
 }
 
 Camera camera = Camera(
-vec3(0.0-cos(iTime)*0.5, 0.5, 5.0-sin(iTime)*0.5)
+vec3(0.0-cos(iTime)*0.5, 0.5, -5.0-sin(iTime)*0.5)
 );
 
 Material diffuse(in vec3 Kd) {
@@ -164,7 +164,9 @@ vec3 rayTrace() {
     vec4 uSampler = texture2D(uSampler, vUvs.xy).rgba;
 
     Pixel pixel = Pixel(
-    vec2(-vUvs.x, vUvs.y),
+    //Отразил здесь по x,
+    //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
+    vec2(-vUvs.x,vUvs.y),
     uSampler.rgb
     );
     //camera.eye.y=-sin(iTime)*0.1;
@@ -172,7 +174,7 @@ vec3 rayTrace() {
     Intersection I = intersection();
 
     scene[0] = Sphere(
-    vec3(-cos(iTime), 0.0, -25.0+sin(iTime)*10.5),
+    vec3(-cos(iTime), 0.0, 25.0+sin(iTime)*10.5),
     0.3,
     diffuse(vec3(1.0, 1.0, 1.0))
     );
@@ -261,7 +263,8 @@ vec3 rayTrace() {
 
     }
     if (
-    floor(pixel.coordinate.x*iScaleWidth)==floor(iMouse.x) &&
+    //Мы совмещали оси и отразили координату при создании pixel, поэтому отразим и iMouse.x
+    floor(pixel.coordinate.x*iScaleWidth)==floor(-iMouse.x) &&
     floor(pixel.coordinate.y*iScaleHeight)==floor(iMouse.y)
     ) {
         pixel.color = vec3(0.0, 0.0, 1.0);

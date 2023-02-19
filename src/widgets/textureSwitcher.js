@@ -74,14 +74,14 @@ export function TextureSwitcher({ container, scales }) {
                 iScaleHeight: scales[texturesDataIndex].height,
                 meshPoints:[
                     //Cornell box
-                    2.5, 2.5, -50.0,
-                    2.5, 2.5, -30.0,
-                    2.5, -2.5, -30.0,
-                    2.5, -2.5, -50.0,
-                    -2.5, 2.5, -50.0,
-                    -2.5, -2.5, -50.0,
-                    -2.5, 2.5, -30.0,
-                    -2.5, -2.5, -30.0
+                    2.5, 2.5, 50.0,
+                    2.5, 2.5, 30.0,
+                    2.5, -2.5, 30.0,
+                    2.5, -2.5, 50.0,
+                    -2.5, 2.5, 50.0,
+                    -2.5, -2.5, 50.0,
+                    -2.5, 2.5, 30.0,
+                    -2.5, -2.5, 30.0
                 ],
                 meshTrianglesData: [
                     //A white back wall
@@ -123,7 +123,6 @@ export function TextureSwitcher({ container, scales }) {
                 ]
             },
         });
-
         const geometry = new Geometry()
             .addAttribute('aVertexPosition',
                 [
@@ -134,10 +133,10 @@ export function TextureSwitcher({ container, scales }) {
                 ], 2)
             .addAttribute('aUvs',
                 [
-                    -1, 0,
+                    0-1, 0,
                     ratio-1, 0,
                     ratio-1, 1,
-                    -1, 1,
+                    0-1, 1,
                 ], 2)
             .addIndex([0, 1, 2, 0, 2, 3]);
         const mesh = new Mesh(geometry, material);
@@ -158,7 +157,7 @@ export function TextureSwitcher({ container, scales }) {
         };
         sprite.on('pointertap', function(event) {
             console.log('PointerTap event');
-            mesh.mouse.x = (event.global.x - event.target.position.x) / spriteScale.x;
+            mesh.mouse.x = (event.global.x - event.target.position.x-event.target.width/2) / spriteScale.x;
             mesh.mouse.y = (event.global.y - event.target.position.y) / spriteScale.y;
 
             console.log('X', mesh.mouse.x, 'Y', mesh.mouse.y);
@@ -167,7 +166,7 @@ export function TextureSwitcher({ container, scales }) {
         return { sprite, mesh, renderTexture };
     });
 
-    this.tumbler = new Tumbler({
+    new Tumbler({
         container,
         onChange: (state) => {
             this.texturesData.forEach(({ sprite }, textureDataIndex) => {
