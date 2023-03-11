@@ -1,16 +1,10 @@
 varying vec3 vUvs;
 
-const int pointsCount = 8;
-const int trianglesCount = 10;
-
 uniform sampler2D uSampler;
 uniform float iTime;
 uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
-uniform vec3 meshPoints[pointsCount];
-uniform int meshTrianglesData[3*trianglesCount];
-uniform vec3 meshTrianglesColors[3*trianglesCount];
 
 const float infini = 1.0 / 0.0;
 
@@ -273,5 +267,8 @@ vec3 rayTrace() {
 }
 
 void main(void) {
+    initMeshPoints();
+    initMeshTrianglesData();
+    initMeshTrianglesColors();
     gl_FragColor = vec4(rayTrace(), 1.0);
 }

@@ -11,7 +11,12 @@ import {
     SCALE_MODES,
 } from 'pixi.js';
 import vert from '../shaders/shader.vert';
-import frag from '../shaders/shader.frag';
+
+//Подгружаю шейдеры
+import model from '../shaders/model.frag';
+import shader from '../shaders/shader.frag';
+//Склеиваю шейдеры в один для передачи в PIXI.Program
+const frag = model+shader;
 
 /**
  *
@@ -53,6 +58,7 @@ export function TextureSwitcher({ container, scales }) {
     this.container = new Container();
     container.addChild(this.container);
     const maxResolutionIndex = 1;
+    //Единицу можно просто закомментить и тогда не будут тратиться ресурсы на создание 2 тектуры
     this.texturesData = [0, 1].map((_, texturesDataIndex) => {
         /*let buff = new Uint8Array(width * height * 4);
         buff.forEach((_, bufferIndex) => {
@@ -71,56 +77,7 @@ export function TextureSwitcher({ container, scales }) {
                 iTime: 0,
                 iMouse: [0, 0],
                 iScaleWidth: scales[texturesDataIndex].width / ratio,
-                iScaleHeight: scales[texturesDataIndex].height,
-                meshPoints:[
-                    //Cornell box
-                    2.5, 2.5, 50.0,
-                    2.5, 2.5, 30.0,
-                    2.5, -2.5, 30.0,
-                    2.5, -2.5, 50.0,
-                    -2.5, 2.5, 50.0,
-                    -2.5, -2.5, 50.0,
-                    -2.5, 2.5, 30.0,
-                    -2.5, -2.5, 30.0
-                ],
-                meshTrianglesData: [
-                    //A white back wall
-                    0, 4, 5,
-                    0, 3, 5,
-                    //A green right wall
-                    0, 1, 2,
-                    3, 0, 2,
-                    //A red left wall
-                    4, 5, 6,
-                    5, 6, 7,
-                    //A white floor
-                    //top
-                    7, 3, 2,
-                    7, 3, 5,
-                    //bottom
-                    6, 4, 0,
-                    6, 0, 1,
-
-                ],
-                meshTrianglesColors: [
-                    //Cornell box
-                    //A white back wall
-                    1.0, 1.0, 1.0,
-                    1.0, 1.0, 1.0,
-                    //A green right wall
-                    0.0, 1.0, 0.0,
-                    0.0, 1.0, 0.0,
-                    //A red left wall
-                    1.0, 0.0, 0.0,
-                    1.0, 0.0, 0.0,
-                    //A white floor
-                    //top
-                    1.0, 1.0, 1.0,
-                    1.0, 1.0, 1.0,
-                    //bottom
-                    1.0, 1.0, 1.0,
-                    1.0, 1.0, 1.0,
-                ]
+                iScaleHeight: scales[texturesDataIndex].height
             },
         });
         const geometry = new Geometry()
