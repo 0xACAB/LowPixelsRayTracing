@@ -83,11 +83,11 @@ let onload = function() {
                 { width: 800, height: 400 }
             ]
         });
+        textureSwitcher.app = app;
         app.ticker.add(() => {
             textureSwitcher.update(app);
         });
-        app.ticker.start();
-    }
+        app.ticker.start();}
 
     init();
 };

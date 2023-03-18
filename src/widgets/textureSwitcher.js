@@ -10,13 +10,15 @@ import {
     RenderTexture,
     SCALE_MODES,
 } from 'pixi.js';
+import {modelShaderString} from '../shaders/model'
 import vert from '../shaders/shader.vert';
 
 //Подгружаю шейдеры
-import model from '../shaders/model.frag';
-import shader from '../shaders/shader.frag';
 //Склеиваю шейдеры в один для передачи в PIXI.Program
-const frag = model+shader;
+//В конце каждого из файлов шейдеров надо переводить каретку
+import uniforms from '../shaders/uniforms.frag';
+import shader from '../shaders/shader.frag';
+const frag = uniforms+modelShaderString+shader;
 
 /**
  *
@@ -131,13 +133,16 @@ export function TextureSwitcher({ container, scales }) {
             });
             this.mesh = this.texturesData[state].mesh;
             this.renderTexture = this.texturesData[state].renderTexture;
+            /*TODO*/
+            if (state===0){
+                this.app&&this.app.renderer.render(this.mesh, { renderTexture: this.renderTexture });
+            }
         },
         startState: 0,
     });
 }
-
 TextureSwitcher.prototype.update = function(app) {
     this.mesh.shader.uniforms.iTime = app.ticker.lastTime / 500;
     this.mesh.shader.uniforms.iMouse = [this.mesh.mouse.x, this.mesh.mouse.y];
-    app.renderer.render(this.mesh, { renderTexture: this.renderTexture });
+    //app.renderer.render(this.mesh, { renderTexture: this.renderTexture });
 };

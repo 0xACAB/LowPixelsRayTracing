@@ -1,11 +1,5 @@
 varying vec3 vUvs;
 
-uniform sampler2D uSampler;
-uniform float iTime;
-uniform vec2 iMouse;
-uniform float iScaleWidth;
-uniform float iScaleHeight;
-
 const float infini = 1.0 / 0.0;
 
 struct Pixel {
