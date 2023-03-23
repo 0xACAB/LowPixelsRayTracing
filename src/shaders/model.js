@@ -618,6 +618,6 @@ export const modelShaderString =
         .fill(null)
         .map((_,index)=>{
             const components = colors.slice(index*3,index*3+3)
-            return 'meshTrianglesColors['+index+']=vec3('+components/*[1.0,1.0,1.0]*/.join()+');\n';
+            return 'meshTrianglesColors['+index+']=vec3('+components.join()+');\n';
         }).join('')+
     '}\n';

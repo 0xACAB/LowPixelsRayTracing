@@ -69,17 +69,9 @@ Ray initRay(in Pixel pixel, in Camera camera) {
     return Ray(camera.eye, direction);
 }
 
-
 vec3 getTrianglePointByIndex(int pointIndex) {
     for (int currentPointIndex=0; currentPointIndex<pointsCount; currentPointIndex++) {
         if (currentPointIndex == pointIndex) return meshPoints[currentPointIndex];
-    }
-    return vec3(-999.0, -999.0, -999.0);
-}
-
-vec3 getTriangleColorByIndex(int triangleIndex) {
-    for (int currentTriangleIndex=0; currentTriangleIndex<trianglesCount; currentTriangleIndex++) {
-        if (currentTriangleIndex == triangleIndex) return meshTrianglesColors[currentTriangleIndex];
     }
     return vec3(-999.0, -999.0, -999.0);
 }
@@ -109,10 +101,10 @@ float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
     return t;
 }
 
-vec3 triIntersect(in Ray R, in vec3 v0, in vec3 v1, in vec3 v2) {
-    vec3 v1v0 = v1 - v0;
-    vec3 v2v0 = v2 - v0;
-    vec3 rov0 = R.origin - v0;
+vec3 triIntersect(in Ray R, in Triangle T) {
+    vec3 v1v0 = T.points[1] - T.points[0];
+    vec3 v2v0 = T.points[2] - T.points[0];
+    vec3 rov0 = R.origin - T.points[0];
     vec3  n = cross(v1v0, v2v0);
     vec3  q = cross(rov0, R.direction);
     float d = 1.0/dot(R.direction, n);
@@ -154,7 +146,7 @@ vec3 rayTrace() {
     Pixel pixel = Pixel(
     //Отразил здесь по x,
     //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
-    vec2(-vUvs.x,vUvs.y),
+    vec2(-vUvs.x, vUvs.y),
     uSampler.rgb
     );
     //camera.eye.y=-sin(iTime)*0.1;
@@ -193,50 +185,34 @@ vec3 rayTrace() {
         }
     } else {
         //Здесь нужно пересмотреть проверку, а то так сфера всегда на переднем плане получается
+        /*for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
 
+        }*/
 
         for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
-            triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), getTriangleColorByIndex(triangleIndex));
+            triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), meshTrianglesColors[triangleIndex]);
+            vec3 c = meshPoints[triangleIndex];
             for (int trianglePointIndex=0; trianglePointIndex<3;++trianglePointIndex) {
-                triangles[triangleIndex].indexes[trianglePointIndex] = meshTrianglesData[triangleIndex*3+trianglePointIndex];
-                triangles[triangleIndex].points[trianglePointIndex] = getTrianglePointByIndex(triangles[triangleIndex].indexes[trianglePointIndex]);
-                triangles[triangleIndex].points[trianglePointIndex].x = triangles[triangleIndex].points[trianglePointIndex].x;
-                triangles[triangleIndex].points[trianglePointIndex].y = triangles[triangleIndex].points[trianglePointIndex].y;
-                triangles[triangleIndex].points[trianglePointIndex].z = triangles[triangleIndex].points[trianglePointIndex].z;
+                //int ix = triangleIndex*3+trianglePointIndex;
+                vec3 c = meshPoints[9/*TODO!!!*/];
+                triangles[triangleIndex].points[trianglePointIndex] = getTrianglePointByIndex(meshTrianglesData[triangleIndex*3+trianglePointIndex]);
             }
 
-            /*vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
-            AABB bbox;
-            bbox = AABB(
-            vec3(
-            min(min(triangles[triangleIndex].points[0].x, triangles[triangleIndex].points[1].x), triangles[triangleIndex].points[2].x),
-            min(min(triangles[triangleIndex].points[0].y, triangles[triangleIndex].points[1].y), triangles[triangleIndex].points[2].y),
-            min(min(triangles[triangleIndex].points[0].z, triangles[triangleIndex].points[1].z), triangles[triangleIndex].points[2].z)
-            ),
-            vec3(
-            max(max(triangles[triangleIndex].points[0].x, triangles[triangleIndex].points[1].x), triangles[triangleIndex].points[2].x),
-            max(max(triangles[triangleIndex].points[0].y, triangles[triangleIndex].points[1].y), triangles[triangleIndex].points[2].y),
-            max(max(triangles[triangleIndex].points[0].z, triangles[triangleIndex].points[1].z), triangles[triangleIndex].points[2].z)
-            ));*/
+            //vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
+            //AABB bbox;
+            //bbox = AABB(
+            //vec3(
+            //min(min(triangles[triangleIndex].points[0].x, triangles[triangleIndex].points[1].x), triangles[triangleIndex].points[2].x),
+            //min(min(triangles[triangleIndex].points[0].y, triangles[triangleIndex].points[1].y), triangles[triangleIndex].points[2].y),
+            //min(min(triangles[triangleIndex].points[0].z, triangles[triangleIndex].points[1].z), triangles[triangleIndex].points[2].z)
+            //),
+            //vec3(
+            //max(max(triangles[triangleIndex].points[0].x, triangles[triangleIndex].points[1].x), triangles[triangleIndex].points[2].x),
+            //max(max(triangles[triangleIndex].points[0].y, triangles[triangleIndex].points[1].y), triangles[triangleIndex].points[2].y),
+            //max(max(triangles[triangleIndex].points[0].z, triangles[triangleIndex].points[1].z), triangles[triangleIndex].points[2].z)
+            //));
             //if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)){
-            vec3 tuv=triIntersect(
-            ray,
-            vec3(
-            triangles[triangleIndex].points[0].x,
-            triangles[triangleIndex].points[0].y,
-            triangles[triangleIndex].points[0].z
-            ),
-            vec3(
-            triangles[triangleIndex].points[1].x,
-            triangles[triangleIndex].points[1].y,
-            triangles[triangleIndex].points[1].z
-            ),
-            vec3(
-            triangles[triangleIndex].points[2].x,
-            triangles[triangleIndex].points[2].y,
-            triangles[triangleIndex].points[2].z
-            )
-            );
+            vec3 tuv=triIntersect(ray, triangles[triangleIndex]);
 
             float t2 = tuv.x;
             if (t2>0.0) {

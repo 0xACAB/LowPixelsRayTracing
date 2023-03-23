@@ -134,9 +134,9 @@ export function TextureSwitcher({ container, scales }) {
             this.mesh = this.texturesData[state].mesh;
             this.renderTexture = this.texturesData[state].renderTexture;
             /*TODO*/
-            if (state===0){
+            /*if (state===0){
                 this.app&&this.app.renderer.render(this.mesh, { renderTexture: this.renderTexture });
-            }
+            }*/
         },
         startState: 0,
     });
@@ -144,5 +144,5 @@ export function TextureSwitcher({ container, scales }) {
 TextureSwitcher.prototype.update = function(app) {
     this.mesh.shader.uniforms.iTime = app.ticker.lastTime / 500;
     this.mesh.shader.uniforms.iMouse = [this.mesh.mouse.x, this.mesh.mouse.y];
-    //app.renderer.render(this.mesh, { renderTexture: this.renderTexture });
+    app.renderer.render(this.mesh, { renderTexture: this.renderTexture });
 };
