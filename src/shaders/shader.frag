@@ -156,7 +156,7 @@ vec3 rayTrace() {
     scene[0] = Sphere(
     vec3(-cos(iTime), 0.0, 25.0+sin(iTime)*10.5),
     0.3,
-    diffuse(vec3(1.0, 1.0, 1.0))
+    diffuse(vec3(0.8, 0.0, 0.0))
     );
     scene[1] = Sphere(
     vec3(1.0, 3.5, -3.0),
@@ -194,7 +194,7 @@ vec3 rayTrace() {
             vec3 c = meshPoints[triangleIndex];
             for (int trianglePointIndex=0; trianglePointIndex<3;++trianglePointIndex) {
                 //int ix = triangleIndex*3+trianglePointIndex;
-                vec3 c = meshPoints[9/*TODO!!!*/];
+                //vec3 c = meshPoints[7/*TODO!!!*/];
                 triangles[triangleIndex].points[trianglePointIndex] = getTrianglePointByIndex(meshTrianglesData[triangleIndex*3+trianglePointIndex]);
             }
 
@@ -237,7 +237,7 @@ vec3 rayTrace() {
 }
 
 void main(void) {
-    initMeshPoints();
+    //initMeshPoints();
     initMeshTrianglesData();
     initMeshTrianglesColors();
     gl_FragColor = vec4(rayTrace(), 1.0);
