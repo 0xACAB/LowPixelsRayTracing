@@ -2,12 +2,12 @@
 * в частности поэтому aVertexPosition имеет тип vec2
 * */
 attribute vec2 aVertexPosition;
-attribute vec3 aUvs;
+attribute vec2 aUvs;
 
 uniform mat3 translationMatrix;
 uniform mat3 projectionMatrix;
 
-varying vec3 vUvs;
+varying vec2 vUvs;
 
 void main(void) {
     vUvs = aUvs;

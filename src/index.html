@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="stylesheet" href="assets/style.css">
     <title><%= htmlWebpackPlugin.options.title %></title>
+
 </head>
 <body>
     <noscript>
@@ -14,6 +15,31 @@
     </noscript>
     <div id="root">
         <div id="app"></div>
+        <div id="app2">
+            <canvas id="c" width=800 height=600></canvas>
+
+            <script id="shader-fs" type="x-shader/x-fragment">
+                precision mediump  float;
+                varying vec2 vUvs;
+                const float infini = 1.0 / 0.0;
+
+                void main(void) {
+                    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+                }
+            </script>
+            <script id="shader-vs" type="x-shader/x-vertex">
+                attribute vec2 aVertexPosition;
+                attribute vec2 aUvs;
+                uniform mat3 u_matrix;
+
+                varying vec2 vUvs;
+                void main() {
+                    vUvs = aUvs;
+                    // Multiply the position by the matrix.
+                    gl_Position = vec4((u_matrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+                }
+            </script>
+        </div>
     </div>
 
     <!-- built files will be auto injected -->

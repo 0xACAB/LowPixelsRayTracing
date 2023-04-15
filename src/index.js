@@ -87,7 +87,9 @@ let onload = function() {
         app.ticker.add(() => {
             textureSwitcher.update(app);
         });
-        app.ticker.start();}
+        app.ticker.start();
+    }
+
 
     init();
 };

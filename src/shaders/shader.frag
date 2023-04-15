@@ -1,4 +1,4 @@
-varying vec3 vUvs;
+varying vec2 vUvs;
 
 const float infini = 1.0 / 0.0;
 
@@ -141,7 +141,7 @@ Sphere scene[2];
 vec3 rayTrace() {
     //Забираем цвет с исходной текстуры
     //Здесь использовать texture2D и uSampler не обязательно, можно просто vec4(0.0,0.0,0.0,0.0)
-    vec4 uSampler = texture2D(uSampler, vUvs.xy).rgba;
+    vec4 uSampler = texture2D(uSampler, vUvs).rgba;
 
     Pixel pixel = Pixel(
     //Отразил здесь по x,
@@ -189,12 +189,10 @@ vec3 rayTrace() {
 
         }*/
 
-        for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
+        /*for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
             triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), meshTrianglesColors[triangleIndex]);
             vec3 c = meshPoints[triangleIndex];
             for (int trianglePointIndex=0; trianglePointIndex<3;++trianglePointIndex) {
-                //int ix = triangleIndex*3+trianglePointIndex;
-                //vec3 c = meshPoints[7/*TODO!!!*/];
                 triangles[triangleIndex].points[trianglePointIndex] = getTrianglePointByIndex(meshTrianglesData[triangleIndex*3+trianglePointIndex]);
             }
 
@@ -222,7 +220,7 @@ vec3 rayTrace() {
                 //pixel.color += vec3(0.4, 0.4, 0.6);
             }
             //}
-        }
+        }*/
 
 
     }
