@@ -1,4 +1,4 @@
-const vertices = [
+const meshPoints = [
     /*2.5, 2.5, 50.0,
     2.5, 2.5, 30.0,
     2.5, -2.5, 30.0,
@@ -97,8 +97,16 @@ const vertices = [
     0.355269, 9.153884, -0.240982,
     -0.355269, 9.725118, 0.240979,
     -0.355269, 9.153884, 0.240980,
-];
-const faces = [
+].map((pointData, index) => {
+    if (index % 3 === 0) return pointData;
+    if (index % 3 === 1) {
+        return -1 * (pointData - 11);
+    }
+    if (index % 3 === 2) {
+        return 30;
+    }
+});
+const meshTrianglesData = [
     /*0, 4, 5,
     0, 3, 5,
     0, 1, 2,
@@ -280,44 +288,5 @@ const faces = [
     75, 83, 86,
     77, 85, 88,
 ].map((face)=>face-1);
-const colors = [
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
 
-    0.0, 1.0, 0.0,
-    0.0, 1.0, 0.0,
-
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 0.0,
-
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0,
-
-    1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0
-];
-
-const pointsCount = vertices.length/3;
-const trianglesCount = faces.length/3;
-export const modelShaderString =
-    '#define pointsCount '+pointsCount+'\n'+
-    '#define trianglesCount '+trianglesCount+'\n'+
-
-    'uniform vec3 meshPoints['+pointsCount+'];\n'+
-    'int meshTrianglesData['+3*trianglesCount+'];\n'+
-    'vec3 meshTrianglesColors['+trianglesCount+'];\n'+
-    'void initMeshTrianglesData(){\n'+
-    Array(faces.length)
-        .fill(null)
-        .map((_,index)=>{
-            return 'meshTrianglesData['+index+']='+faces[index]+';\n';
-        }).join('')+
-    '}\n'+
-    'void initMeshTrianglesColors(){\n'+
-    Array(trianglesCount)
-        .fill(null)
-        .map((_,index)=>{
-            const components = colors.slice(index*3,index*3+3)
-            return 'meshTrianglesColors['+index+']=vec3('+/*components*/[0.0,0.8,0.0].join()+');\n';
-        }).join('')+
-    '}\n';
+export {meshPoints, meshTrianglesData};

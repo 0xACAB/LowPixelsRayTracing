@@ -1,3 +1,14 @@
+uniform sampler2D uSampler;
+uniform float iTime;
+uniform vec2 iMouse;
+uniform float iScaleWidth;
+uniform float iScaleHeight;
+#define pointsCount 89/*meshPoints.length/3*/
+#define trianglesCount 168/*faces.length/3*/
+uniform vec3 meshPoints[pointsCount];
+uniform int meshTrianglesData[trianglesCount*3];
+vec3 meshTrianglesColors[trianglesCount];
+
 varying vec2 vUvs;
 
 const float infini = 1.0 / 0.0;
@@ -189,8 +200,8 @@ vec3 rayTrace() {
 
         }*/
 
-        /*for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
-            triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), meshTrianglesColors[triangleIndex]);
+        for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
+            triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), /*meshTrianglesColors[triangleIndex]*/vec3(0.0,0.8,0.0));
             vec3 c = meshPoints[triangleIndex];
             for (int trianglePointIndex=0; trianglePointIndex<3;++trianglePointIndex) {
                 triangles[triangleIndex].points[trianglePointIndex] = getTrianglePointByIndex(meshTrianglesData[triangleIndex*3+trianglePointIndex]);
@@ -220,8 +231,7 @@ vec3 rayTrace() {
                 //pixel.color += vec3(0.4, 0.4, 0.6);
             }
             //}
-        }*/
-
+        }
 
     }
     if (
@@ -235,8 +245,5 @@ vec3 rayTrace() {
 }
 
 void main(void) {
-    //initMeshPoints();
-    initMeshTrianglesData();
-    initMeshTrianglesColors();
     gl_FragColor = vec4(rayTrace(), 1.0);
 }
