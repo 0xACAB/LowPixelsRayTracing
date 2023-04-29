@@ -11,7 +11,7 @@ body {
     align-items: center;
     /*height: 100%;*/
 }
-#c {
+#mainCanvas {
     width: 800px;
     height: 600px;
     image-rendering: optimizeSpeed;             /* Older versions of FF          */

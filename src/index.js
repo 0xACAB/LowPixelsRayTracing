@@ -1,5 +1,5 @@
 import { Application, Assets, Container, TextStyle, Text } from 'pixi.js';
-import { TextureSwitcher } from './widgets/textureSwitcher';
+import { TextureSwitcher, TextureSwitcher2 } from './widgets/textureSwitcher';
 
 let onload = function() {
     const app = new Application({
@@ -88,6 +88,19 @@ let onload = function() {
             textureSwitcher.update(app);
         });
         app.ticker.start();
+
+
+        let textureSwitcher2 = new TextureSwitcher2(
+            [
+                { width: 40*2, height: 20*2},
+                { width: 800, height: 400 }
+            ]);
+        let prev = performance.now();
+        window.requestAnimationFrame(function step(timestamp) {
+            prev = timestamp;
+            textureSwitcher2.update2(timestamp);
+            window.requestAnimationFrame(step)
+        });
     }
 
 

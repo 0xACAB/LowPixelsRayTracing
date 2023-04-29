@@ -1,18 +1,17 @@
 precision mediump  float;
-//uniform sampler2D uSampler;
+varying vec2 vTexCoord;
+
 uniform float iTime;
 uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
+
 #define pointsCount 89/*meshPoints.length/3*/
 #define trianglesCount 168/*faces.length/3*/
 uniform vec3 meshPoints[pointsCount];
 uniform int meshTrianglesData[trianglesCount*3];
 
-varying vec2 vUvs;
-
 const float infini = 1.0 / 0.0;
-
 struct Pixel {
     vec2 coordinate;
     vec3 color;
@@ -64,7 +63,7 @@ Intersection intersection() {
 }
 
 Camera camera = Camera(
-vec3(0.0-cos(iTime)*0.5, 0.5, -5.0-sin(iTime)*0.5)
+vec3(10.0/*-cos(iTime)*0.5*/, 10.0, -25.0/*-sin(iTime)*0.5*/)
 );
 
 Material diffuse(in vec3 Kd) {
@@ -147,26 +146,21 @@ in float t// t of current intersection, used for pruning, see iq's comment.
 
 Triangle triangles[trianglesCount];
 Sphere scene[2];
-
-
 vec3 rayTrace() {
+
     //Забираем цвет с исходной текстуры
     //Здесь использовать texture2D и uSampler не обязательно, можно просто vec4(0.0,0.0,0.0,0.0)
-    vec4 uSampler = vec4(0.0,0.0,0.0,0.0);//texture2D(uSampler, vUvs).rgba;
-
-    Pixel pixel = Pixel(
+    vec4 uSampler = vec4(0.0, 0.0, 0.0, 0.0);//texture2D(uSampler, vUvs).rgba;
     //Отразил здесь по x,
     //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
-    vec2(-vUvs.x, vUvs.y),
-    uSampler.rgb
-    );
-    //camera.eye.y=-sin(iTime)*0.1;
+    Pixel pixel = Pixel(vec2(vTexCoord.x, vTexCoord.y), uSampler.rgb);
+
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
 
     scene[0] = Sphere(
-    vec3(-cos(iTime), 0.0, 25.0+sin(iTime)*10.5),
-    0.3,
+    vec3(20.0/*-cos(iTime)*/, 20.0, 25.0/*+sin(iTime)*10.5*/),
+    25.0,
     diffuse(vec3(0.8, 0.0, 0.0))
     );
     scene[1] = Sphere(
@@ -177,6 +171,7 @@ vec3 rayTrace() {
 
     Material material;
     float ray_length = computeSphereIntersection(ray, scene[0]);
+
     if (ray_length > 0.0 && ray_length < infini) {
         material = scene[0].material;
 
@@ -230,6 +225,7 @@ vec3 rayTrace() {
             //}
         }*/
 
+        pixel.color = vec3(0.0, 0.0, 1.0);
     }
     if (
     //Мы совмещали оси и отразили координату при создании pixel, поэтому отразим и iMouse.x
@@ -238,9 +234,13 @@ vec3 rayTrace() {
     ) {
         pixel.color = vec3(0.0, 0.0, 1.0);
     }
+    /*if (pixel.coordinate.x > 20.5) {
+        pixel.color = vec3(0.0, 0.0, 1.0);
+    } else {
+        pixel.color = vec3(1.0, 0.0, 0.0);
+    }*/
     return pixel.color;
 }
-
 void main(void) {
     gl_FragColor = vec4(rayTrace(), 1.0);
 }
