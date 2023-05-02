@@ -92,15 +92,9 @@ let onload = function() {
 
         let textureSwitcher2 = new TextureSwitcher2(
             [
-                { width: 40*2, height: 20*2},
+                { width: 40, height: 40},
                 { width: 800, height: 400 }
             ]);
-        let prev = performance.now();
-        window.requestAnimationFrame(function step(timestamp) {
-            prev = timestamp;
-            textureSwitcher2.update2(timestamp);
-            window.requestAnimationFrame(step)
-        });
     }
 
 

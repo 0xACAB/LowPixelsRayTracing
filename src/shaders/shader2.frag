@@ -1,6 +1,9 @@
-precision mediump  float;
-varying vec2 vTexCoord;
+precision mediump float;
+// Passed in from the vertex shader.
+varying vec2 v_texcoord;
 
+// The texture.
+uniform sampler2D u_texture;
 uniform float iTime;
 uniform vec2 iMouse;
 uniform float iScaleWidth;
@@ -63,7 +66,7 @@ Intersection intersection() {
 }
 
 Camera camera = Camera(
-vec3(10.0/*-cos(iTime)*0.5*/, 10.0, -25.0/*-sin(iTime)*0.5*/)
+vec3(0.0/*-cos(iTime)*0.5*/, 0.0, -25.0/*-sin(iTime)*0.5*/)
 );
 
 Material diffuse(in vec3 Kd) {
@@ -153,14 +156,14 @@ vec3 rayTrace() {
     vec4 uSampler = vec4(0.0, 0.0, 0.0, 0.0);//texture2D(uSampler, vUvs).rgba;
     //Отразил здесь по x,
     //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
-    Pixel pixel = Pixel(vec2(vTexCoord.x, vTexCoord.y), uSampler.rgb);
+    Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), uSampler.rgb);
 
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
 
     scene[0] = Sphere(
-    vec3(20.0/*-cos(iTime)*/, 20.0, 25.0/*+sin(iTime)*10.5*/),
-    25.0,
+    vec3(-cos(iTime), 0.0, 10.0/*+sin(iTime)*10.5*/),
+    1.0,
     diffuse(vec3(0.8, 0.0, 0.0))
     );
     scene[1] = Sphere(
@@ -227,14 +230,14 @@ vec3 rayTrace() {
 
         pixel.color = vec3(0.0, 0.0, 1.0);
     }
-    if (
+    /*if (
     //Мы совмещали оси и отразили координату при создании pixel, поэтому отразим и iMouse.x
     floor(pixel.coordinate.x*iScaleWidth)==floor(-iMouse.x) &&
     floor(pixel.coordinate.y*iScaleHeight)==floor(iMouse.y)
     ) {
         pixel.color = vec3(0.0, 0.0, 1.0);
-    }
-    /*if (pixel.coordinate.x > 20.5) {
+    }*/
+    /*if (pixel.coordinate.x > .65) {
         pixel.color = vec3(0.0, 0.0, 1.0);
     } else {
         pixel.color = vec3(1.0, 0.0, 0.0);

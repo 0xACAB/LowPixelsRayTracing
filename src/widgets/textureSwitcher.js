@@ -10,8 +10,8 @@ import {
     Shader,
 } from 'pixi.js';
 
-import {meshPoints, meshTrianglesData} from './sceneData';
-import m3 from './matrixes';
+import { meshPoints, meshTrianglesData } from './sceneData';
+import m4 from './m4';
 import vert from '../shaders/shader.vert';
 import frag from '../shaders/shader.frag';
 import vert2 from '../shaders/shader2.vert';
@@ -69,7 +69,7 @@ export function TextureSwitcher({ container, scales }) {
             iScaleWidth: scales[texturesDataIndex].width / ratio,
             iScaleHeight: scales[texturesDataIndex].height,
             meshPoints: meshPoints,
-            meshTrianglesData: meshTrianglesData
+            meshTrianglesData: meshTrianglesData,
         });
         const geometry = new Geometry()
             .addAttribute('aVertexPosition',
@@ -129,6 +129,7 @@ export function TextureSwitcher({ container, scales }) {
         startState: 0,
     });
 }
+
 TextureSwitcher.prototype.update = function(app) {
     this.mesh.shader.uniforms.iTime = app.ticker.lastTime / 500;
     this.mesh.shader.uniforms.iMouse = [this.mesh.mouse.x, this.mesh.mouse.y];
@@ -137,15 +138,12 @@ TextureSwitcher.prototype.update = function(app) {
 
 export function TextureSwitcher2(scales) {
     // Get A WebGL context
-    const canvas = document.querySelector('#mainCanvas');
-    const gl = canvas.getContext('webgl');
+    /** @type {HTMLCanvasElement} */
+    var canvas = document.querySelector('#mainCanvas');
+    var gl = canvas.getContext('webgl');
     if (!gl) {
         return;
-    } else {
-        this.gl = gl;
     }
-    gl.viewportWidth = canvas.width;
-    gl.viewportHeight = canvas.height;
 
     // Функция создания шейдера
     function getShader(type, shaderCodeStr) {
@@ -162,114 +160,207 @@ export function TextureSwitcher2(scales) {
 
     const fragmentShader = getShader(gl.FRAGMENT_SHADER, frag2);
     const vertexShader = getShader(gl.VERTEX_SHADER, vert2);
-    const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    // setup GLSL program
+    const program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
         alert('Не удалось установить шейдеры');
     }
-
     // look up where the vertex data needs to go.
-    shaderProgram.aVertexPosition = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-    shaderProgram.aTexCoord = gl.getAttribLocation(shaderProgram, "aTexCoord");
+    var positionLocation = gl.getAttribLocation(program, 'a_position');
+    var texcoordLocation = gl.getAttribLocation(program, 'a_texcoord');
 
     // lookup uniforms
-    const matrixLocation = gl.getUniformLocation(shaderProgram, "u_matrix");
-    const iTimeLocation = gl.getUniformLocation(shaderProgram, "iTime");
-    const iMouse = gl.getUniformLocation(shaderProgram, "iMouse");
-    const iScaleWidth = gl.getUniformLocation(shaderProgram, "iScaleWidth");
-    const iScaleHeight = gl.getUniformLocation(shaderProgram, "iScaleHeight");
-    const meshPointsLocation = gl.getUniformLocation(shaderProgram, "meshPoints");
-    const meshTrianglesDataLocation = gl.getUniformLocation(shaderProgram, "meshTrianglesData");
-    // Create a buffer to put positions in
-    const positionBuffer = gl.createBuffer();
+    var matrixLocation = gl.getUniformLocation(program, 'u_matrix');
+    const iTimeLocation = gl.getUniformLocation(program, "iTime");
+    const iMouse = gl.getUniformLocation(program, "iMouse");
+    const iScaleWidth = gl.getUniformLocation(program, "iScaleWidth");
+    const iScaleHeight = gl.getUniformLocation(program, "iScaleHeight");
+    const meshPointsLocation = gl.getUniformLocation(program, "meshPoints");
+    const meshTrianglesDataLocation = gl.getUniformLocation(program, "meshTrianglesData");
+    var textureLocation = gl.getUniformLocation(program, 'u_texture');
+
+    // Create a buffer for positions
+    var positionBuffer = gl.createBuffer();
     // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    const width = scales[0].width;
-    const height = scales[0].height;
-    const vertices = [
-        0, 0,
-        width, 0,
-        width, height,
-        0, height,
-    ];
-    // Put geometry data into buffer
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    // Put the positions in the buffer
+    setGeometry(gl);
 
 
-    const indices = [0, 1, 2, 0, 2, 3];
-    //Создание буфера индексов
-    const indexBuffer = gl.createBuffer(); //буфер индексов
+    let indices = [0, 1, 2, 0, 2, 3];
+    // создание буфера индексов
+    const indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
     //Указываем число индексов это число равно числу индексов
     indexBuffer.numberOfItems = indices.length;
 
-    const ratio = width / height;
-    const aTexCoord = [
-        0 - 1, 0,
-        ratio - 1, 0,
-        ratio - 1, 1,
-        0 - 1, 1,
-    ];
+    // provide texture coordinates for the rectangle.
+    var texcoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+    // Set Texcoords.
+    setTexcoords(gl);
 
-    //установка буфера вершин
-    const aTexCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, aTexCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(aTexCoord), gl.STATIC_DRAW);
-    // размерность
-    aTexCoordBuffer.itemSize = 2;
-    aTexCoordBuffer.numItems = 4;
+    // Create a texture.
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
 
-    const translation = [0, 0];
-    const angleInRadians = 0;
-    const scale = [1, 1];
+    // fill texture with 3x2 pixels
+    const level = 0;
+    const internalFormat = gl.LUMINANCE;
+    const width = scales[0].width;
+    const height = scales[0].height;
+    const border = 0;
+    const format = gl.LUMINANCE;
+    const type = gl.UNSIGNED_BYTE;
+    const data = new Uint8Array(
+        Array(width * height)
+            .fill(null)
+            .map(() => {
+                return 0;
+            }),
+    );
+    const alignment = 1;
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, alignment);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border,
+        format, type, data);
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-    // Clear the canvas.
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.useProgram(shaderProgram);
+    // set the filtering so we don't need mips and it's not filtered
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    // Turn on the attribute
-    gl.enableVertexAttribArray(shaderProgram.aVertexPosition);
-    // Turn on the attribute
-    gl.enableVertexAttribArray(shaderProgram.aTexCoord);
+    function degToRad(d) {
+        return d * Math.PI / 180;
+    }
 
-    // Bind the position buffer.
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.vertexAttribPointer(shaderProgram.aVertexPosition,
-        2, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribPointer(shaderProgram.aTexCoord,
-        aTexCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    var fieldOfViewRadians = degToRad(60);
+    var modelXRotationRadians = degToRad(0);
+    var modelYRotationRadians = degToRad(0);
 
-    // Compute the matrices
-    let matrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
-    matrix = m3.translate(matrix, translation[0], translation[1]);
-    matrix = m3.rotate(matrix, angleInRadians);
-    matrix = m3.scale(matrix, scale[0], scale[1]);
+    // Fill the buffer with the values that define a plane.
+    function setGeometry(gl) {
+        var positions = new Float32Array(
+            [
+                -0.5, -0.5,   0.5,
+                0.5, -0.5,   0.5,
+                -0.5,  0.5,   0.5,
+                -0.5,  0.5,   0.5,
+                0.5, -0.5,   0.5,
+                0.5,  0.5,   0.5,
 
-    // Set the matrix.
-    gl.uniformMatrix3fv(matrixLocation, false, matrix);
-    gl.uniform1f(iTimeLocation, 0);
-    gl.uniform2f(iMouse,  0, 0);
-    gl.uniform1f(iScaleWidth, scales[0/*texturesDataIndex*/].width / ratio);
-    gl.uniform1f(iScaleHeight, scales[0/*texturesDataIndex*/].height);
-    gl.uniform3fv(meshPointsLocation,  meshPoints);
-    gl.uniform3fv(meshTrianglesDataLocation,  meshTrianglesData);
+            ]);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+    }
 
-    //Отрисовка треугольников
-    gl.drawElements(gl.TRIANGLES, indexBuffer.numberOfItems, gl.UNSIGNED_SHORT, 0);
+    // Fill the buffer with texture coordinates the plane.
+    function setTexcoords(gl) {
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array(
+                [
+                    -1, -1,
+                    1, -1,
+                    -1, 1,
+                    -1, 1,
+                    1, -1,
+                    1, 1,
+                ]),
+            gl.STATIC_DRAW);
+    }
 
-    matrix = m3.scale(matrix, 4, 4);
-    // Set the matrix.
-    gl.uniformMatrix3fv(matrixLocation, false, matrix);
-    // Draw the geometry.
-    //gl.drawArrays(gl.TRIANGLES, 0, 6);
+    // Get the starting time.
+    let then = 0;
+    requestAnimationFrame(drawScene);
+
+    // Draw the scene.
+    function drawScene(time) {
+        // convert to seconds
+        time *= 0.001;
+        // Subtract the previous time from the current time
+        const deltaTime = time - then;
+        // Remember the current time for the next frame.
+        then = time;
+
+        // Tell WebGL how to convert from clip space to pixels
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DEPTH_TEST);
+
+        // Clear the canvas AND the depth buffer.
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // Tell it to use our program (pair of shaders)
+        gl.useProgram(program);
+
+        // Turn on the position attribute
+        gl.enableVertexAttribArray(positionLocation);
+
+        // Bind the position buffer.
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+        // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+        var size = 3;          // 3 components per iteration
+        var type = gl.FLOAT;   // the data is 32bit floats
+        var normalize = false; // don't normalize the data
+        var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        var offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(
+            positionLocation, size, type, normalize, stride, offset);
+
+        // Turn on the texcoord attribute
+        gl.enableVertexAttribArray(texcoordLocation);
+
+        // bind the texcoord buffer.
+        gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+
+        // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+        var size = 2;          // 2 components per iteration
+        var type = gl.FLOAT;   // the data is 32bit floats
+        var normalize = false; // don't normalize the data
+        var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        var offset = 0;        // start at the beginning of the buffer
+        gl.vertexAttribPointer(
+            texcoordLocation, size, type, normalize, stride, offset);
+
+        // Compute the projection matrix
+        const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+        const projectionMatrix =
+            m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
+
+        const cameraPosition = [0, 0, 2];
+        const up = [0, 1, 0];
+        const target = [0, 0, 0];
+
+        // Compute the camera's matrix using look at.
+        const cameraMatrix = m4.lookAt(cameraPosition, target, up);
+        // Make a view matrix from the camera matrix.
+        const viewMatrix = m4.inverse(cameraMatrix);
+        const viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+        let matrix = m4.xRotate(viewProjectionMatrix, modelXRotationRadians);
+        matrix = m4.yRotate(matrix, modelYRotationRadians);
+
+        // Set the matrix.
+        gl.uniformMatrix4fv(matrixLocation, false, matrix);
+        gl.uniform1f(iTimeLocation, time);
+        gl.uniform2f(iMouse,  0, 0);
+        gl.uniform1f(iScaleWidth, width);
+        gl.uniform1f(iScaleHeight, height);
+        gl.uniform3fv(meshPointsLocation,  meshPoints);
+        gl.uniform3fv(meshTrianglesDataLocation,  meshTrianglesData);
+
+        // Tell the shader to use texture unit 0 for u_texture
+        gl.uniform1i(textureLocation, 0);
+
+        // Draw the geometry.
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        requestAnimationFrame(drawScene);
+    }
 
 }
-TextureSwitcher2.prototype.update2 = function(timestamp) {
-    //this.gl.uniform1f(this.iTimeLocation, timestamp);
-    console.log(timestamp);
-};
