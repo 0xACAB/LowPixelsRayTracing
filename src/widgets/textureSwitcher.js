@@ -169,8 +169,8 @@ export function TextureSwitcher2(scales) {
         alert('Не удалось установить шейдеры');
     }
     // look up where the vertex data needs to go.
-    var positionLocation = gl.getAttribLocation(program, 'a_position');
-    var texcoordLocation = gl.getAttribLocation(program, 'a_texcoord');
+    var positionLocation = gl.getAttribLocation(program, "a_position");
+    var texcoordLocation = gl.getAttribLocation(program, "a_texcoord");
 
     // lookup uniforms
     var matrixLocation = gl.getUniformLocation(program, 'u_matrix');
@@ -189,15 +189,6 @@ export function TextureSwitcher2(scales) {
     // Put the positions in the buffer
     setGeometry(gl);
 
-
-    let indices = [0, 1, 2, 0, 2, 3];
-    // создание буфера индексов
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-    //Указываем число индексов это число равно числу индексов
-    indexBuffer.numberOfItems = indices.length;
-
     // provide texture coordinates for the rectangle.
     var texcoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
@@ -208,31 +199,63 @@ export function TextureSwitcher2(scales) {
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
-    // fill texture with 3x2 pixels
-    const level = 0;
-    const internalFormat = gl.LUMINANCE;
-    const width = scales[0].width;
-    const height = scales[0].height;
-    const border = 0;
-    const format = gl.LUMINANCE;
-    const type = gl.UNSIGNED_BYTE;
-    const data = new Uint8Array(
-        Array(width * height)
-            .fill(null)
-            .map(() => {
-                return 0;
-            }),
-    );
-    const alignment = 1;
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, alignment);
-    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border,
-        format, type, data);
+    {
+        // fill texture with 3x2 pixels
+        const level = 0;
+        const internalFormat = gl.LUMINANCE;
+        const width = 3;
+        const height = 2;
+        const border = 0;
+        const format = gl.LUMINANCE;
+        const type = gl.UNSIGNED_BYTE;
+        const data = new Uint8Array([
+            128,  64, 128,
+            0, 192,   0,
+        ]);
+        const alignment = 1;
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, alignment);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border,
+            format, type, data);
 
-    // set the filtering so we don't need mips and it's not filtered
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // set the filtering so we don't need mips and it's not filtered
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
+
+    // Create a texture to render to
+    const targetTextureWidth = scales[0].width;
+    const targetTextureHeight = scales[0].height;
+    const targetTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+
+    {
+        // define size and format of level 0
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const border = 0;
+        const format = gl.RGBA;
+        const type = gl.UNSIGNED_BYTE;
+        const data = null;
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+            targetTextureWidth, targetTextureHeight, border,
+            format, type, data);
+
+        // set the filtering so we don't need mips
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
+
+    // Create and bind the framebuffer
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+    // attach the texture as the first color attachment
+    const attachmentPoint = gl.COLOR_ATTACHMENT0;
+    const level = 0;
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, level);
 
     function degToRad(d) {
         return d * Math.PI / 180;
@@ -242,59 +265,12 @@ export function TextureSwitcher2(scales) {
     var modelXRotationRadians = degToRad(0);
     var modelYRotationRadians = degToRad(0);
 
-    // Fill the buffer with the values that define a plane.
-    function setGeometry(gl) {
-        var positions = new Float32Array(
-            [
-                -0.5, -0.5,   0.5,
-                0.5, -0.5,   0.5,
-                -0.5,  0.5,   0.5,
-                -0.5,  0.5,   0.5,
-                0.5, -0.5,   0.5,
-                0.5,  0.5,   0.5,
-
-            ]);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-    }
-
-    // Fill the buffer with texture coordinates the plane.
-    function setTexcoords(gl) {
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Float32Array(
-                [
-                    -1, -1,
-                    1, -1,
-                    -1, 1,
-                    -1, 1,
-                    1, -1,
-                    1, 1,
-                ]),
-            gl.STATIC_DRAW);
-    }
-
     // Get the starting time.
-    let then = 0;
+    var then = 0;
+
     requestAnimationFrame(drawScene);
 
-    // Draw the scene.
-    function drawScene(time) {
-        // convert to seconds
-        time *= 0.001;
-        // Subtract the previous time from the current time
-        const deltaTime = time - then;
-        // Remember the current time for the next frame.
-        then = time;
-
-        // Tell WebGL how to convert from clip space to pixels
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
-
-        // Clear the canvas AND the depth buffer.
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
+    function drawCube(aspect) {
         // Tell it to use our program (pair of shaders)
         gl.useProgram(program);
 
@@ -329,28 +305,30 @@ export function TextureSwitcher2(scales) {
             texcoordLocation, size, type, normalize, stride, offset);
 
         // Compute the projection matrix
-        const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-        const projectionMatrix =
+        var projectionMatrix =
             m4.perspective(fieldOfViewRadians, aspect, 1, 2000);
 
-        const cameraPosition = [0, 0, 2];
-        const up = [0, 1, 0];
-        const target = [0, 0, 0];
+        var cameraPosition = [0, 0, 2];
+        var up = [0, 1, 0];
+        var target = [0, 0, 0];
 
         // Compute the camera's matrix using look at.
-        const cameraMatrix = m4.lookAt(cameraPosition, target, up);
+        var cameraMatrix = m4.lookAt(cameraPosition, target, up);
+
         // Make a view matrix from the camera matrix.
-        const viewMatrix = m4.inverse(cameraMatrix);
-        const viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-        let matrix = m4.xRotate(viewProjectionMatrix, modelXRotationRadians);
+        var viewMatrix = m4.inverse(cameraMatrix);
+
+        var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+
+        var matrix = m4.xRotate(viewProjectionMatrix, modelXRotationRadians);
         matrix = m4.yRotate(matrix, modelYRotationRadians);
 
         // Set the matrix.
         gl.uniformMatrix4fv(matrixLocation, false, matrix);
-        gl.uniform1f(iTimeLocation, time);
+        gl.uniform1f(iTimeLocation, 0);
         gl.uniform2f(iMouse,  0, 0);
-        gl.uniform1f(iScaleWidth, width);
-        gl.uniform1f(iScaleHeight, height);
+        gl.uniform1f(iScaleWidth, scales[0].width);
+        gl.uniform1f(iScaleHeight, scales[0].height);
         gl.uniform3fv(meshPointsLocation,  meshPoints);
         gl.uniform3fv(meshTrianglesDataLocation,  meshTrianglesData);
 
@@ -358,9 +336,94 @@ export function TextureSwitcher2(scales) {
         gl.uniform1i(textureLocation, 0);
 
         // Draw the geometry.
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.drawArrays(gl.TRIANGLES, 0, 6 * 6);
+    }
+
+    // Draw the scene.
+    function drawScene(time) {
+        // convert to seconds
+        time *= 0.001;
+        // Subtract the previous time from the current time
+        var deltaTime = time - then;
+        // Remember the current time for the next frame.
+        then = time;
+
+        // Animate the rotation
+        /*modelYRotationRadians += -0.7 * deltaTime;
+        modelXRotationRadians += -0.4 * deltaTime;*/
+
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DEPTH_TEST);
+
+        {
+            // render to our targetTexture by binding the framebuffer
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+            // render cube with our 3x2 texture
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+
+            // Tell WebGL how to convert from clip space to pixels
+            gl.viewport(0, 0, targetTextureWidth, targetTextureHeight);
+
+            // Clear the attachment(s).
+            gl.clearColor(0, 0, 1, 1);   // clear to blue
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            const aspect = targetTextureWidth / targetTextureHeight;
+            drawCube(aspect);
+        }
+
+        {
+            // render to the canvas
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            // render the cube with the texture we just rendered to
+            gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+
+            // Tell WebGL how to convert from clip space to pixels
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+            // Clear the canvas AND the depth buffer.
+            gl.clearColor(1, 1, 1, 1);   // clear to white
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+
+            const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+            drawCube(aspect);
+        }
 
         requestAnimationFrame(drawScene);
+    }
+
+    // Fill the buffer with the values that define a plane.
+    function setGeometry(gl) {
+        var positions = new Float32Array(
+            [
+                -0.5, -0.5,   0.5,
+                0.5, -0.5,   0.5,
+                -0.5,  0.5,   0.5,
+                -0.5,  0.5,   0.5,
+                0.5, -0.5,   0.5,
+                0.5,  0.5,   0.5,
+
+            ]);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+    }
+
+    // Fill the buffer with texture coordinates the plane.
+    function setTexcoords(gl) {
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array(
+                [
+                    0, 0,
+                    1, 0,
+                    0, 1,
+                    0, 1,
+                    1, 0,
+                    1, 1,
+                ]),
+            gl.STATIC_DRAW);
     }
 
 }

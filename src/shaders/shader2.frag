@@ -163,7 +163,7 @@ vec3 rayTrace() {
 
     scene[0] = Sphere(
     vec3(-cos(iTime), 0.0, 10.0/*+sin(iTime)*10.5*/),
-    1.0,
+    10.0,
     diffuse(vec3(0.8, 0.0, 0.0))
     );
     scene[1] = Sphere(
@@ -245,5 +245,5 @@ vec3 rayTrace() {
     return pixel.color;
 }
 void main(void) {
-    gl_FragColor = vec4(rayTrace(), 1.0);
+    gl_FragColor = texture2D(u_texture, v_texcoord);//vec4(rayTrace(), 1.0);
 }

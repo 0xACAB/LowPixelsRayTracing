@@ -79,7 +79,7 @@ let onload = function() {
         let textureSwitcher = new TextureSwitcher({
             container,
             scales: [
-                { width: 40*2, height: 20*2},
+                { width: 10, height: 10},
                 { width: 800, height: 400 }
             ]
         });
@@ -92,7 +92,7 @@ let onload = function() {
 
         let textureSwitcher2 = new TextureSwitcher2(
             [
-                { width: 40, height: 40},
+                { width: 10, height: 10},
                 { width: 800, height: 400 }
             ]);
     }
