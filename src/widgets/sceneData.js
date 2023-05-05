@@ -98,9 +98,9 @@ const meshPoints = [
     -0.355269, 9.725118, 0.240979,
     -0.355269, 9.153884, 0.240980,
 ].map((pointData, index) => {
-    if (index % 3 === 0) return pointData;
+    if (index % 3 === 0) return pointData+2;
     if (index % 3 === 1) {
-        return -1 * (pointData - 11);
+        return -1 * (pointData - 9);
     }
     if (index % 3 === 2) {
         return 30;

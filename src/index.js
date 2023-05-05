@@ -1,7 +1,6 @@
-
 import { TextureSwitcher2 } from './widgets/textureSwitcher';
 
-let onload = function() {
+const onload = function() {
     const canvas = document.querySelector('#mainCanvas');
     const textureSwitcher2 = new TextureSwitcher2(
         canvas,

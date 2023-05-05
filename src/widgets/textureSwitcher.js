@@ -1,15 +1,3 @@
-import {
-    Container,
-    Sprite,
-    Texture,
-    Geometry,
-    Mesh,
-    BaseRenderTexture,
-    RenderTexture,
-    SCALE_MODES,
-    Shader,
-} from 'pixi.js';
-
 import { meshPoints, meshTrianglesData } from './sceneData';
 import vert from '../shaders/shader.vert';
 import frag from '../shaders/shader.frag';
@@ -136,8 +124,6 @@ TextureSwitcher.prototype.update = function(app) {
 };
 
 export function TextureSwitcher2(canvas, scales) {
-    // Get A WebGL context
-    /** @type {HTMLCanvasElement} */
     const gl = canvas.getContext('webgl');
     if (!gl) {
         return;
@@ -182,12 +168,12 @@ export function TextureSwitcher2(canvas, scales) {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(
         [
-            -1, -1, 0.5,
-            1, -1, 0.5,
-            -1, 1, 0.5,
-            -1, 1, 0.5,
-            1, -1, 0.5,
-            1, 1, 0.5,
+            -1, -1,
+            1, -1,
+            -1, 1,
+            -1, 1,
+            1, -1,
+            1, 1
 
         ]), gl.STATIC_DRAW);
 
@@ -199,12 +185,12 @@ export function TextureSwitcher2(canvas, scales) {
         gl.ARRAY_BUFFER,
         new Float32Array(
             [
-                -1, -1,
-                1, -1,
-                -1, 1,
-                -1, 1,
-                1, -1,
-                1, 1,
+                -2, -1,
+                2, -1,
+                -2, 1,
+                -2, 1,
+                2, -1,
+                2, 1,
             ]),
         gl.STATIC_DRAW);
 
@@ -231,7 +217,7 @@ export function TextureSwitcher2(canvas, scales) {
     gl.useProgram(program);
     gl.enableVertexAttribArray(positionLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
     gl.enableVertexAttribArray(texcoordLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
@@ -240,10 +226,19 @@ export function TextureSwitcher2(canvas, scales) {
     gl.uniform2f(iMouse, 0, 0);
     gl.uniform1f(iScaleWidth, scales[0].width);
     gl.uniform1f(iScaleHeight, scales[0].height);
-    gl.uniform3fv(meshPointsLocation, meshPoints);
-    gl.uniform3fv(meshTrianglesDataLocation, meshTrianglesData);
+    gl.uniform3fv(meshPointsLocation, [
+        0,0,0,
+        0,0,0,
+        0,0,0
+    ]);
+    gl.uniform1iv(meshTrianglesDataLocation, [0,0,0]);
 
     function drawPlane(time) {
+        console.log(time);
+        /*if (time>5){
+            gl.uniform3fv(meshPointsLocation, meshPoints);
+            gl.uniform1iv(meshTrianglesDataLocation, meshTrianglesData);
+        }*/
         gl.uniform1f(iTimeLocation, time);
         // Draw the geometry.
         gl.drawArrays(gl.TRIANGLES, 0, 6);

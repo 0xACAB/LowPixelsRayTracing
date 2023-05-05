@@ -147,6 +147,7 @@ in float t// t of current intersection, used for pruning, see iq's comment.
 
 
 Triangle triangles[trianglesCount];
+Triangle triangle;
 Sphere scene[2];
 vec3 rayTrace() {
 
@@ -161,8 +162,8 @@ vec3 rayTrace() {
     Intersection I = intersection();
 
     scene[0] = Sphere(
-    vec3(0.0, 0.0, 50.0/*+sin(iTime)*10.5*/),
-    2.0,
+    vec3(-3.0, 0.0, 50.0/*+sin(iTime)*10.5*/),
+    1.0,
     diffuse(vec3(0.8, 0.0, 0.0))
     );
     scene[1] = Sphere(
@@ -192,11 +193,10 @@ vec3 rayTrace() {
             pixel.color = result;
         }
     } else {
-        //Здесь нужно пересмотреть проверку, а то так сфера всегда на переднем плане получается
+
 
         /*for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
             triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), vec3(0.0,0.8,0.0));
-            vec3 c = meshPoints[triangleIndex];
             for (int trianglePointIndex=0; trianglePointIndex<3;++trianglePointIndex) {
                 triangles[triangleIndex].points[trianglePointIndex] = getTrianglePointByIndex(meshTrianglesData[triangleIndex*3+trianglePointIndex]);
             }
@@ -227,7 +227,7 @@ vec3 rayTrace() {
             //}
         }*/
 
-        pixel.color = vec3(0.0, 0.0, 0.0);
+        //pixel.color = vec3(0.0, 0.0, 0.0);
     }
     /*if (
     //Мы совмещали оси и отразили координату при создании pixel, поэтому отразим и iMouse.x

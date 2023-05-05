@@ -9,9 +9,7 @@
     "start": "webpack serve"
   },
   "main": "index.js",
-  "dependencies": {
-    "pixi.js": "^7.0.5"
-  },
+  "dependencies": {},
   "license": "ISC",
   "devDependencies": {
     "clean-webpack-plugin": "^4.0.0",
