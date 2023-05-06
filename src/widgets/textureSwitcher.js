@@ -1,4 +1,4 @@
-import { meshPoints, meshTrianglesData } from './sceneData';
+import { trianglesPoints } from './sceneData';
 import vert from '../shaders/shader.vert';
 import frag from '../shaders/shader.frag';
 import vert2 from '../shaders/shader2.vert';
@@ -161,8 +161,7 @@ export function TextureSwitcher2(canvas, scales) {
     const iMouse = gl.getUniformLocation(program, 'iMouse');
     const iScaleWidth = gl.getUniformLocation(program, 'iScaleWidth');
     const iScaleHeight = gl.getUniformLocation(program, 'iScaleHeight');
-    const meshPointsLocation = gl.getUniformLocation(program, 'meshPoints');
-    const meshTrianglesDataLocation = gl.getUniformLocation(program, 'meshTrianglesData');
+    const meshTrianglesLocation = gl.getUniformLocation(program, 'trianglesPoints');
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -226,19 +225,19 @@ export function TextureSwitcher2(canvas, scales) {
     gl.uniform2f(iMouse, 0, 0);
     gl.uniform1f(iScaleWidth, scales[0].width);
     gl.uniform1f(iScaleHeight, scales[0].height);
-    gl.uniform3fv(meshPointsLocation, [
+    /*gl.uniform3fv(meshPointsLocation, [
         0,0,0,
         0,0,0,
         0,0,0
     ]);
-    gl.uniform1iv(meshTrianglesDataLocation, [0,0,0]);
+    gl.uniform1iv(meshTrianglesDataLocation, [0,0,0]);*/
+
+    gl.uniform3fv(meshTrianglesLocation, trianglesPoints);
 
     function drawPlane(time) {
-        console.log(time);
-        /*if (time>5){
-            gl.uniform3fv(meshPointsLocation, meshPoints);
-            gl.uniform1iv(meshTrianglesDataLocation, meshTrianglesData);
-        }*/
+        if (time>5){
+            gl.uniform3fv(meshTrianglesLocation, trianglesPoints);
+        }
         gl.uniform1f(iTimeLocation, time);
         // Draw the geometry.
         gl.drawArrays(gl.TRIANGLES, 0, 6);

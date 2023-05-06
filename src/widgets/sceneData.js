@@ -106,6 +106,12 @@ const meshPoints = [
         return 30;
     }
 });
+const v3Points = Array(meshPoints.length/3)
+    .fill(null)
+    .map((_,index)=>{
+        return meshPoints.slice(index*3,index*3+3)
+    });
+
 const meshTrianglesData = [
     /*0, 4, 5,
     0, 3, 5,
@@ -287,6 +293,14 @@ const meshTrianglesData = [
     75, 74, 82,
     75, 83, 86,
     77, 85, 88,
-].map((face)=>face-1);
+].map((data)=>data-1);
+//Массив в котором треугольники перечислены просто последовательно по 3 точки
+const trianglesPoints = Array(meshTrianglesData.length/3)
+    .fill(null)
+    .map((_,index)=>{
+        return meshTrianglesData.slice(index*3,index*3+3).map((data)=>{
+            return v3Points[data]
+        })
+    }).flat().flat();
 
-export {meshPoints, meshTrianglesData};
+export {trianglesPoints};

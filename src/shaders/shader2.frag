@@ -8,10 +8,8 @@ uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
 
-#define pointsCount 89/*meshPoints.length/3*/
-#define trianglesCount 168/*faces.length/3*/
-uniform vec3 meshPoints[pointsCount];
-uniform int meshTrianglesData[trianglesCount*3];
+#define trianglesCount 168
+uniform vec3 trianglesPoints[504];
 
 const float infini = 1.0 / 0.0;
 struct Pixel {
@@ -81,12 +79,6 @@ Ray initRay(in Pixel pixel, in Camera camera) {
     return Ray(camera.eye, direction);
 }
 
-vec3 getTrianglePointByIndex(int pointIndex) {
-    for (int currentPointIndex=0; currentPointIndex<pointsCount; currentPointIndex++) {
-        if (currentPointIndex == pointIndex) return meshPoints[currentPointIndex];
-    }
-    return vec3(-999.0, -999.0, -999.0);
-}
 
 float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
     float a = dot(ray.direction, ray.direction);
@@ -147,7 +139,6 @@ in float t// t of current intersection, used for pruning, see iq's comment.
 
 
 Triangle triangles[trianglesCount];
-Triangle triangle;
 Sphere scene[2];
 vec3 rayTrace() {
 
@@ -163,7 +154,7 @@ vec3 rayTrace() {
 
     scene[0] = Sphere(
     vec3(-3.0, 0.0, 50.0/*+sin(iTime)*10.5*/),
-    1.0,
+    1.5,
     diffuse(vec3(0.8, 0.0, 0.0))
     );
     scene[1] = Sphere(
@@ -193,8 +184,21 @@ vec3 rayTrace() {
             pixel.color = result;
         }
     } else {
+        for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
+            triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), vec3(0.0,0.8,0.0));
+            for (int trianglePointIndex=0; trianglePointIndex<3;++trianglePointIndex) {
+                triangles[triangleIndex].points[trianglePointIndex] = trianglesPoints[triangleIndex*3+trianglePointIndex];
+            }
 
-
+            vec3 tuv=triIntersect(ray, triangles[triangleIndex]);
+            float t2 = tuv.x;
+            if (t2>0.0) {
+                pixel.color = triangles[triangleIndex].material.Ke;
+            } else {
+                //Цвет AABB
+                //pixel.color += vec3(0.4, 0.4, 0.6);
+            }
+        }
         /*for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
             triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), vec3(0.0,0.8,0.0));
             for (int trianglePointIndex=0; trianglePointIndex<3;++trianglePointIndex) {
