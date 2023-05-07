@@ -1,15 +1,9 @@
-/*Матрицы используются для определения местонахождения квадрата, где рендерится
-* в частности поэтому aVertexPosition имеет тип vec2
-* */
-attribute vec2 aVertexPosition;
-attribute vec2 aUvs;
+#version 300 es
+in vec2 a_position;
+in vec2 a_texcoord;
+out vec2 v_texcoord;
 
-uniform mat3 translationMatrix;
-uniform mat3 projectionMatrix;
-
-varying vec2 vUvs;
-
-void main(void) {
-    vUvs = aUvs;
-    gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+void main() {
+    gl_Position = vec4(a_position.xy, 0.0, 1.0);
+    v_texcoord = a_texcoord;
 }

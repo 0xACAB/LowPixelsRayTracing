@@ -1,8 +1,6 @@
-import { trianglesPoints } from './sceneData';
+//import { trianglesPoints } from './sceneData';
 import vert from '../shaders/shader.vert';
 import frag from '../shaders/shader.frag';
-import vert2 from '../shaders/shader2.vert';
-import frag2 from '../shaders/shader2.frag';
 
 /**
  *
@@ -124,7 +122,7 @@ TextureSwitcher.prototype.update = function(app) {
 };
 
 export function TextureSwitcher2(canvas, scales) {
-    const gl = canvas.getContext('webgl');
+    const gl = canvas.getContext('webgl2');
     if (!gl) {
         return;
     }
@@ -142,8 +140,8 @@ export function TextureSwitcher2(canvas, scales) {
         return shader;
     }
 
-    const fragmentShader = getShader(gl.FRAGMENT_SHADER, frag2);
-    const vertexShader = getShader(gl.VERTEX_SHADER, vert2);
+    const fragmentShader = getShader(gl.FRAGMENT_SHADER, frag);
+    const vertexShader = getShader(gl.VERTEX_SHADER, vert);
     // setup GLSL program
     const program = gl.createProgram();
     gl.attachShader(program, vertexShader);
@@ -161,7 +159,6 @@ export function TextureSwitcher2(canvas, scales) {
     const iMouse = gl.getUniformLocation(program, 'iMouse');
     const iScaleWidth = gl.getUniformLocation(program, 'iScaleWidth');
     const iScaleHeight = gl.getUniformLocation(program, 'iScaleHeight');
-    const meshTrianglesLocation = gl.getUniformLocation(program, 'trianglesPoints');
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -225,19 +222,8 @@ export function TextureSwitcher2(canvas, scales) {
     gl.uniform2f(iMouse, 0, 0);
     gl.uniform1f(iScaleWidth, scales[0].width);
     gl.uniform1f(iScaleHeight, scales[0].height);
-    /*gl.uniform3fv(meshPointsLocation, [
-        0,0,0,
-        0,0,0,
-        0,0,0
-    ]);
-    gl.uniform1iv(meshTrianglesDataLocation, [0,0,0]);*/
-
-    gl.uniform3fv(meshTrianglesLocation, trianglesPoints);
 
     function drawPlane(time) {
-        if (time>5){
-            gl.uniform3fv(meshTrianglesLocation, trianglesPoints);
-        }
         gl.uniform1f(iTimeLocation, time);
         // Draw the geometry.
         gl.drawArrays(gl.TRIANGLES, 0, 6);
