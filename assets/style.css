@@ -13,6 +13,13 @@ h1 {
     line-height: 1;
     text-align: center;
 }
+A {
+    text-decoration: none; /* Убирает подчеркивание для ссылок */
+}
+A:hover {
+    text-decoration: underline; /* Добавляем подчеркивание при наведении курсора на ссылку */
+    color: red; /* Ссылка красного цвета */
+}
 
 #root {
     flex-direction: column;
@@ -20,6 +27,9 @@ h1 {
     justify-content: center;
     align-items: center;
     /*height: 100%;*/
+}
+#tg_link {
+    margin-bottom: 20px;
 }
 
 #mainCanvas {

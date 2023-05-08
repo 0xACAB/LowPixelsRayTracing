@@ -1,4 +1,4 @@
-//import { trianglesPoints } from './sceneData';
+import { trianglesPoints } from './sceneData';
 import vert from '../shaders/shader.vert';
 import frag from '../shaders/shader.frag';
 
@@ -147,6 +147,7 @@ export function TextureSwitcher2(canvas, scales) {
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
+
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
         alert('Не удалось установить шейдеры');
     }
@@ -159,6 +160,7 @@ export function TextureSwitcher2(canvas, scales) {
     const iMouse = gl.getUniformLocation(program, 'iMouse');
     const iScaleWidth = gl.getUniformLocation(program, 'iScaleWidth');
     const iScaleHeight = gl.getUniformLocation(program, 'iScaleHeight');
+    const trianglesPointsLocation = gl.getUniformLocation(program, 'trianglesPoints');
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -222,7 +224,7 @@ export function TextureSwitcher2(canvas, scales) {
     gl.uniform2f(iMouse, 0, 0);
     gl.uniform1f(iScaleWidth, scales[0].width);
     gl.uniform1f(iScaleHeight, scales[0].height);
-
+    gl.uniform3fv(trianglesPointsLocation, trianglesPoints);
     function drawPlane(time) {
         gl.uniform1f(iTimeLocation, time);
         // Draw the geometry.

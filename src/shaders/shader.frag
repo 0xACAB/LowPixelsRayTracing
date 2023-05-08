@@ -7,41 +7,8 @@ uniform float iTime;
 uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
-
-#define trianglesCount 10
-vec3 trianglesPoints[trianglesCount*3] = vec3[](
-vec3(1.5, 1.5, 50),
-vec3(-1.5, 1.5, 50),
-vec3(-1.5, -1.5, 50),
-vec3(1.5, 1.5, 50),
-vec3(1.5, -1.5, 50),
-vec3(-1.5, -1.5, 50),
-vec3(1.5, 1.5, 50),
-vec3(1.5, 1.5, 30),
-vec3(1.5, -1.5, 30),
-vec3(1.5, -1.5, 50),
-vec3(1.5, 1.5, 50),
-vec3(1.5, -1.5, 30),
-vec3(-1.5, 1.5, 50),
-vec3(-1.5, -1.5, 50),
-vec3(-1.5, 1.5, 30),
-vec3(-1.5, -1.5, 50),
-vec3(-1.5, 1.5, 30),
-vec3(-1.5, -1.5, 30),
-vec3(-1.5, -1.5, 30),
-vec3(1.5, -1.5, 50),
-vec3(1.5, -1.5, 30),
-vec3(-1.5, -1.5, 30),
-vec3(1.5, -1.5, 50),
-vec3(-1.5, -1.5, 50),
-vec3(-1.5, 1.5, 30),
-vec3(-1.5, 1.5, 50),
-vec3(1.5, 1.5, 50),
-vec3(-1.5, 1.5, 30),
-vec3(1.5, 1.5, 50),
-vec3(1.5, 1.5, 30)
-);
-/*uniform vec3 trianglesPoints[504];*/
+#define trianglesCount 168
+uniform vec3 trianglesPoints[trianglesCount*3];
 
 const float infini = 1.0 / 0.0;
 struct Pixel {
@@ -93,9 +60,6 @@ Intersection intersection() {
     return I;
 }
 
-Camera camera = Camera(
-vec3(0.0, 0.0, -25.0/*-sin(iTime)*0.5*/)
-);
 
 Material diffuse(in vec3 Kd) {
     return Material(Kd, vec3(0.0, 0.0, 0.0));
@@ -168,8 +132,8 @@ in float t// t of current intersection, used for pruning, see iq's comment.
     return (tmax >= 0.0) && (tmin <= tmax) && (tmin <= t);
 }
 
-
-Triangle triangles[trianglesCount];
+Camera camera = Camera(vec3(0.0, 0.0, -25.0));
+AABB bbox = AABB(vec3(-1.5, -1.5, 50.0), vec3(3.5, 1.5, 30.0));
 Sphere scene[2];
 vec3 rayTrace() {
 
@@ -216,21 +180,21 @@ vec3 rayTrace() {
         }
     } else {
         vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
-        AABB bbox;
-        //TODO: ограничивающие координаты bb
-        bbox = AABB(vec3(-1.5,-1.5,50.0),vec3(2.5,1.5,30.0));
         if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)) {
             //Только если прошли ограничение считаем пересечения с треугольниками
             for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
-                triangles[triangleIndex].material = Material(vec3(1.0, 1.0, 1.0), vec3(0.0,0.5,0.5));
-                for (int trianglePointIndex=0; trianglePointIndex<3;++trianglePointIndex) {
-                    triangles[triangleIndex].points[trianglePointIndex] = trianglesPoints[triangleIndex*3+trianglePointIndex];
-                }
-
-                vec3 tuv=triIntersect(ray, triangles[triangleIndex]);
+                Triangle triangle = Triangle(
+                vec3[](
+                trianglesPoints[triangleIndex*3],
+                trianglesPoints[triangleIndex*3+1],
+                trianglesPoints[triangleIndex*3+2]
+                ),
+                Material(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.5, sin(iTime)))
+                );
+                vec3 tuv=triIntersect(ray, triangle);
                 float t2 = tuv.x;
                 if (t2>0.0) {
-                    pixel.color = triangles[triangleIndex].material.Ke;
+                    pixel.color = triangle.material.Ke;
                 } else {
                     //Цвет AABB
                     //pixel.color += vec3(0.4, 0.4, 0.6);
