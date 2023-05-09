@@ -1,9 +1,11 @@
-import { TextureSwitcher2 } from './widgets/textureSwitcher';
+import { TextureSwitcher } from './modules/textureSwitcher';
 
 const onload = function() {
     const canvas = document.querySelector('#mainCanvas');
-    const textureSwitcher2 = new TextureSwitcher2(
+    const button = document.querySelector('#button');
+    const textureSwitcher = new TextureSwitcher(
         canvas,
+        button,
         [
             { width: canvas.width, height: canvas.height},
             { width: 800, height: 400 }

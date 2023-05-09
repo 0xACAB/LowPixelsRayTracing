@@ -7,7 +7,7 @@ uniform float iTime;
 uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
-#define trianglesCount 168
+#define trianglesCount 30/*168*/
 uniform vec3 trianglesPoints[trianglesCount*3];
 
 const float infini = 1.0 / 0.0;
@@ -136,13 +136,9 @@ Camera camera = Camera(vec3(0.0, 0.0, -25.0));
 AABB bbox = AABB(vec3(-1.5, -1.5, 50.0), vec3(3.5, 1.5, 30.0));
 Sphere scene[2];
 vec3 rayTrace() {
-
-    //Забираем цвет с исходной текстуры
-    //Здесь использовать texture2D и uSampler не обязательно, можно просто vec4(0.0,0.0,0.0,0.0)
-    vec4 uSampler = vec4(0.0, 0.0, 0.0, 0.0);//texture2D(uSampler, vUvs).rgba;
     //Отразил здесь по y,
     //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
-    Pixel pixel = Pixel(vec2(v_texcoord.x, -v_texcoord.y), uSampler.rgb);
+    Pixel pixel = Pixel(vec2(v_texcoord.x, -v_texcoord.y), vec3(0.0, 0.0, 0.0));
 
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
@@ -150,7 +146,7 @@ vec3 rayTrace() {
     scene[0] = Sphere(
     vec3(-3.0-sin(iTime), 0.0, 50.0),
     1.5,
-    diffuse(vec3(0.8, 0.0, 0.0))
+    diffuse(vec3(0.8, cos(iTime), sin(iTime)))
     );
     scene[1] = Sphere(
     vec3(1.0, 3.5, -3.0),

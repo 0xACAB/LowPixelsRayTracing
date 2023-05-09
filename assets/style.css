@@ -12,6 +12,7 @@ h1 {
     letter-spacing: -1px;
     line-height: 1;
     text-align: center;
+    user-select: none;
 }
 A {
     text-decoration: none; /* Убирает подчеркивание для ссылок */
@@ -30,6 +31,13 @@ A:hover {
 }
 #tg_link {
     margin-bottom: 20px;
+}
+
+#button {
+    background-image: url("off_tumbler.png");
+    background-repeat: no-repeat;
+    width: 100px;
+    height: 30px;
 }
 
 #mainCanvas {
