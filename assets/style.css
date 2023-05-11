@@ -38,6 +38,31 @@ A:hover {
     background-repeat: no-repeat;
     width: 100px;
     height: 30px;
+    display: none;
+}
+
+datalist {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    writing-mode: vertical-lr;
+    width: 200px;
+
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    color: #111;
+    letter-spacing: -1px;
+    line-height: 1;
+}
+
+option {
+    padding: 0;
+}
+
+input[type="range"] {
+    width: 200px;
+    margin: 0;
 }
 
 #mainCanvas {

@@ -2,6 +2,14 @@ import { trianglesPoints } from './sceneData';
 import vert from '../shaders/shader.vert';
 import frag from '../shaders/shader.frag';
 
+function Slider(slider, onChange, startState) {
+    this.state = startState;
+    slider.addEventListener("input", (event) => {
+        onChange(event.target.value);
+    });
+    onChange(startState);
+}
+
 function Tumbler(button, onChange, startState) {
     this.state = startState;
     button.addEventListener('click', () => {
@@ -16,7 +24,7 @@ function Tumbler(button, onChange, startState) {
     onChange(startState);
 }
 
-export function TextureSwitcher(canvas, button, scales) {
+export function TextureSwitcher(canvas, slider, button, scales) {
     const gl = canvas.getContext('webgl2');
     if (!gl) {
         return;
@@ -112,7 +120,7 @@ export function TextureSwitcher(canvas, button, scales) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     // Create and bind the framebuffer
-    const fb = gl.createFramebuffer();
+    let fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
 
@@ -143,40 +151,32 @@ export function TextureSwitcher(canvas, button, scales) {
     }
 
     requestAnimationFrame(drawScene);
-
-    this.tumbler = new Tumbler(
+    this.slider = new Slider(slider,
+        (state) => {
+            console.log(state);
+            if (state) {
+                canvas.width = scales[state].width;
+                canvas.height = scales[state].height;
+            } else {
+                canvas.width = scales[state].width;
+                canvas.height = scales[state].height;
+            }
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        },
+        0)
+    /*this.tumbler = new Tumbler(
         button,
         (state) => {
             console.log(state);
             if (state) {
-                canvas.width = 32;
-                canvas.height = 16;
+                canvas.width = scales[0].width;
+                canvas.height = scales[0].height;
             } else {
-                canvas.width = 600;
-                canvas.height = 300;
+                canvas.width = scales[1].width;
+                canvas.height = scales[1].height;
             }
-
-            // Create a texture to render to
-            const targetTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, targetTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, scales[0].width, scales[0].height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-            // Create and bind the framebuffer
-            const fb = gl.createFramebuffer();
-            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
-
-            // render to the canvas
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            gl.bindTexture(gl.TEXTURE_2D, targetTexture);
             gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-
         },
         0,
-    );
+    );*/
 }

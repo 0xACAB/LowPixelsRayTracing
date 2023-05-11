@@ -140,6 +140,7 @@ vec3 rayTrace() {
     //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
     Pixel pixel = Pixel(vec2(v_texcoord.x, -v_texcoord.y), vec3(0.0, 0.0, 0.0));
 
+    camera.eye.z = -25.0+10.5*sin(iTime);
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
 
@@ -153,7 +154,6 @@ vec3 rayTrace() {
     0.00,
     light(vec3(1.0, 1.0, 1.0))
     );
-
     Material material;
     float ray_length = computeSphereIntersection(ray, scene[0]);
 

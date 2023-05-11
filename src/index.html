@@ -14,11 +14,19 @@
         Please enable it to continue.</strong>
 </noscript>
 <div id="root">
-    <div id="tg_link"><a href="https://t.me/xTranscendence" target="_blank"><h1>Ray tracing</h1></a></div>
+    <div id="tg_link"><a href="https://t.me/xTranscendence" target="_blank"><h1>Real time GPU ray tracing</h1></a></div>
     <div id="app">
         <canvas id="mainCanvas" width=64 height=32></canvas>
     </div>
     <div id="button"></div>
+    <label for="slider">Choose a resolution:</label>
+    <input type="range" id="slider" name="slider" value="0" min="0" max="3" list="values"/>
+    <datalist id="values">
+        <option value="0" label="32x16"></option>
+        <option value="1" label="64x32"></option>
+        <option value="2" label="128x64"></option>
+        <option value="3" label="256x128"></option>
+    </datalist>
 </div>
 
 <!-- built files will be auto injected -->
