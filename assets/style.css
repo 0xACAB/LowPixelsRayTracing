@@ -21,7 +21,6 @@ A:hover {
     text-decoration: underline; /* Добавляем подчеркивание при наведении курсора на ссылку */
     color: red; /* Ссылка красного цвета */
 }
-
 #root {
     flex-direction: column;
     display: flex;
@@ -29,18 +28,16 @@ A:hover {
     align-items: center;
     /*height: 100%;*/
 }
+
 #tg_link {
     margin-bottom: 20px;
 }
-
-#button {
-    background-image: url("off_tumbler.png");
-    background-repeat: no-repeat;
-    width: 100px;
-    height: 30px;
-    display: none;
+label {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 15px;
+    color: #111;
+    line-height: 1;
 }
-
 datalist {
     display: flex;
     flex-direction: column;

@@ -2,7 +2,6 @@ import { TextureSwitcher } from './modules/textureSwitcher';
 
 const onload = function() {
     const canvas = document.querySelector('#mainCanvas');
-    const button = document.querySelector('#button');
     const slider = document.querySelector('#slider');
     const scales = [
         { width: 32, height: 16 },
@@ -13,6 +12,6 @@ const onload = function() {
 
     canvas.width = scales[0].width;
     canvas.height = scales[0].height;
-    const textureSwitcher = new TextureSwitcher(canvas, slider, button, scales);
+    const textureSwitcher = new TextureSwitcher(canvas, slider, scales);
 };
 window.onload = onload;

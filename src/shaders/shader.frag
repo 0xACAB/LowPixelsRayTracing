@@ -7,8 +7,32 @@ uniform float iTime;
 uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
-#define trianglesCount 30/*168*/
+#define trianglesCount 10
 uniform vec3 trianglesPoints[trianglesCount*3];
+
+vec3 trianglesColors[trianglesCount] = vec3[](
+//Cornell box
+//A white back wall
+vec3(1.0, 1.0, 1.0),
+vec3(1.0, 1.0, 1.0),
+
+//A green right wall
+vec3(0.0, 1.0, 0.0),
+vec3(0.0, 1.0, 0.0),
+
+//A red left wall
+vec3(1.0, 0.0, 0.0),
+vec3(1.0, 0.0, 0.0),
+
+//A white floor
+//top
+vec3(1.0, 1.0, 1.0),
+vec3(1.0, 1.0, 1.0),
+
+//bottom
+vec3(1.0, 1.0, 1.0),
+vec3(1.0, 1.0, 1.0)
+);
 
 const float infini = 1.0 / 0.0;
 struct Pixel {
@@ -94,10 +118,25 @@ float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
         } else {
             return t;
         }
+
+        t = (-b-sqrt(delta)) / (2.0*a);
         ray.origin = ray.origin + t * ray.direction;
         ray.direction = normalize(ray.origin - sphere.position) * direction;
     }
     return t;
+}
+
+bool intersect_sphere(in Ray ray, in Sphere sphere, out float t) {
+    vec3 CO = ray.origin - sphere.position;
+    float a = dot(ray.direction, ray.direction);
+    float b = 2.0*dot(ray.direction, CO);
+    float c = dot(CO, CO) - sphere.radius*sphere.radius;
+    float delta = b*b - 4.0*a*c;
+    if (delta < 0.0) {
+        return false;
+    }
+    t = (-b-sqrt(delta)) / (2.0*a);
+    return true;
 }
 
 vec3 triIntersect(in Ray R, in Triangle T) {
@@ -133,71 +172,89 @@ in float t// t of current intersection, used for pruning, see iq's comment.
 }
 
 Camera camera = Camera(vec3(0.0, 0.0, -25.0));
-AABB bbox = AABB(vec3(-1.5, -1.5, 50.0), vec3(3.5, 1.5, 30.0));
-Sphere scene[2];
+AABB bbox = AABB(vec3(-1.5, -1.5, 50.0), vec3(1.5, 1.5, 30.0));
+Sphere scene[3];
 vec3 rayTrace() {
     //Отразил здесь по y,
     //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
     Pixel pixel = Pixel(vec2(v_texcoord.x, -v_texcoord.y), vec3(0.0, 0.0, 0.0));
 
-    camera.eye.z = -25.0+10.5*sin(iTime);
+    //camera.eye.z = -25.0+10.5*sin(iTime);
+    camera.eye.x = sin(iTime)*2.2;
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
 
-    scene[0] = Sphere(
-    vec3(-3.0-sin(iTime), 0.0, 50.0),
-    1.5,
-    diffuse(vec3(0.8, cos(iTime), sin(iTime)))
+    scene = Sphere[3](
+    Sphere(vec3(-0.75, 0.0, 40.0), 0.75, diffuse(vec3(0.8, cos(iTime), sin(iTime)))),
+    Sphere(vec3(0.95, 0.0, 40.0), 0.5, diffuse(vec3(0.8, sin(iTime), cos(iTime)))),
+    Sphere(vec3(1.0, 3.5, -3.0), 0.00, light(vec3(1.0, 1.0, 1.0)))
     );
-    scene[1] = Sphere(
-    vec3(1.0, 3.5, -3.0),
-    0.00,
-    light(vec3(1.0, 1.0, 1.0))
-    );
+
     Material material;
-    float ray_length = computeSphereIntersection(ray, scene[0]);
 
-    if (ray_length > 0.0 && ray_length < infini) {
-        material = scene[0].material;
+    vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
+    float ray_length = infini;
+    if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)) {
 
-        if (material.Ke != vec3(0.0, 0.0, 0.0)) {
-            pixel.color = scene[0].material.Ke;
-        } else {
-            vec3 result = vec3(0.0, 0.0, 0.0);
-            for (int i=0; i<2; ++i) {
-                //Для всех сфер являющихся источниками света
-                if (scene[i].material.Ke != vec3(0.0, 0.0, 0.0)) {
-                    vec3 E = scene[i].position - ray.origin;
-                    float lamb = max(0.0, dot(E, ray.direction) / length(E));
-                    result += lamb * material.Kd * scene[i].material.Ke;
-                }
-            }
-            pixel.color = result;
-        }
-    } else {
-        vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
-        if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)) {
-            //Только если прошли ограничение считаем пересечения с треугольниками
-            for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
-                Triangle triangle = Triangle(
-                vec3[](
-                trianglesPoints[triangleIndex*3],
-                trianglesPoints[triangleIndex*3+1],
-                trianglesPoints[triangleIndex*3+2]
-                ),
-                Material(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.5, sin(iTime)))
-                );
-                vec3 tuv=triIntersect(ray, triangle);
-                float t2 = tuv.x;
-                if (t2>0.0) {
+        //Только если прошли ограничение считаем пересечения с треугольниками
+        for (int triangleIndex=0; triangleIndex<trianglesCount; ++triangleIndex) {
+            Triangle triangle = Triangle(
+            vec3[](
+            trianglesPoints[triangleIndex*3],
+            trianglesPoints[triangleIndex*3+1],
+            trianglesPoints[triangleIndex*3+2]
+            ),
+            Material(vec3(1.0, 1.0, 1.0), trianglesColors[triangleIndex])
+            );
+            vec3 tuv=triIntersect(ray, triangle);
+            float t2 = tuv.x;
+            if (t2>0.0) {
+                if (t2<ray_length){
                     pixel.color = triangle.material.Ke;
-                } else {
-                    //Цвет AABB
-                    //pixel.color += vec3(0.4, 0.4, 0.6);
                 }
+                ray_length = t2;
+            } else {
+                //Цвет AABB
+                //pixel.color += vec3(0.4, 0.4, 0.6);
             }
         }
     }
+
+    for (int i=0; i<scene.length(); ++i) {
+        float ray_length2 = computeSphereIntersection(ray, scene[i]);
+        if (ray_length2 > 0.0 && ray_length2 < ray_length) {
+            material = scene[i].material;
+            if (material.Ke != vec3(0.0, 0.0, 0.0)) {
+                pixel.color = scene[i].material.Ke;
+            } else {
+                vec3 result = vec3(0.0, 0.0, 0.0);
+                for (int i=0; i<scene.length(); ++i) {
+                    //Для всех сфер являющихся источниками света
+                    if (scene[i].material.Ke != vec3(0.0, 0.0, 0.0)) {
+                        vec3 E = scene[i].position - ray.origin;
+                        float lamb = max(0.0, dot(E, ray.direction) / length(E));
+                        result += lamb * material.Kd * scene[i].material.Ke;
+                    }
+                }
+                pixel.color = result;
+            }
+        }
+    };
+    /*for(int i=0; i<scene.length(); ++i) {
+        material = scene[i].material;
+        if (material.Ke != vec3(0.0, 0.0, 0.0)) {
+            pixel.color = scene[i].material.Ke;
+        } else {
+            vec3 result = vec3(0.0, 0.0, 0.0);
+            //Для всех сфер являющихся источниками света
+            if (scene[i].material.Ke != vec3(0.0, 0.0, 0.0)) {
+                vec3 E = scene[i].position - ray.origin;
+                float lamb = max(0.0, dot(E, ray.direction) / length(E));
+                result += lamb * material.Kd * scene[i].material.Ke;
+            }
+            pixel.color = result;
+        }
+    }*/
     /*if (
     //Мы совмещали оси и отразили координату при создании pixel, поэтому отразим и iMouse.x
     floor(pixel.coordinate.x*iScaleWidth)==floor(-iMouse.x) &&
