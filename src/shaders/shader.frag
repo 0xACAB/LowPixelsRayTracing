@@ -120,8 +120,8 @@ float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
         }
 
         t = (-b-sqrt(delta)) / (2.0*a);
-        ray.origin = ray.origin + t * ray.direction;
-        ray.direction = normalize(ray.origin - sphere.position) * direction;
+        /*ray.origin = ray.origin + t * ray.direction;
+        ray.direction = normalize(ray.origin - sphere.position) * direction;*/
     }
     return t;
 }
@@ -185,9 +185,9 @@ vec3 rayTrace() {
     Intersection I = intersection();
 
     scene = Sphere[3](
-    Sphere(vec3(-0.75, 0.0, 40.0), 0.75, diffuse(vec3(0.8, cos(iTime), sin(iTime)))),
-    Sphere(vec3(0.95, 0.0, 40.0), 0.5, diffuse(vec3(0.8, sin(iTime), cos(iTime)))),
-    Sphere(vec3(1.0, 3.5, -3.0), 0.00, light(vec3(1.0, 1.0, 1.0)))
+    Sphere(vec3(0.0, 0.0, 40.0), 0.75, diffuse(vec3(0.8, cos(iTime), sin(iTime)))),
+    Sphere(vec3(1.0*sin(iTime), 0.0, 40.0+1.0*cos(iTime)), 0.25, diffuse(vec3(0.6, 0.6, 0.6))),
+    Sphere(vec3(0.0, 3.5, -3.0), 0.00, light(vec3(1.0, 1.0, 1.0)))
     );
 
     Material material;
@@ -219,10 +219,10 @@ vec3 rayTrace() {
             }
         }
     }
-
     for (int i=0; i<scene.length(); ++i) {
         float ray_length2 = computeSphereIntersection(ray, scene[i]);
         if (ray_length2 > 0.0 && ray_length2 < ray_length) {
+            ray_length = ray_length2;
             material = scene[i].material;
             if (material.Ke != vec3(0.0, 0.0, 0.0)) {
                 pixel.color = scene[i].material.Ke;
