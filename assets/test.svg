@@ -1,7 +1,0 @@
-<svg viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg">
-  <style>
-	.heavy { font: bold 29px serif; fill: red; }
-  </style>
-
-  <text x="20" y="35" class="heavy">@xTranscendence</text>
-</svg>

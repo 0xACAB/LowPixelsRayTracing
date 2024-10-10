@@ -1,0 +1,31 @@
+{
+  "company": {
+    "name": "Ray tracing",
+    "logo": "/assets/images/logo.png"
+  },
+  "about": {
+    "sections": [
+      {
+        "name": "Нативная сцена",
+        "href": "/raytracing"
+      },
+      {
+        "name": "Основная сцена",
+        "href": "/geometry/architecture"
+      },
+      {
+        "name": "Расширенная сцена",
+        "href": "/geometry/template"
+      },
+      {
+        "name": "Сцена с треугольником",
+        "href": "/geometry/triangle"
+      }
+    ],
+    "socialMedia": {
+      "github": "https://github.com/0xACAB",
+      "linkedin": "https://www.linkedin.com/in/xtranscendence/",
+      "telegram": "https://t.me/xTranscendence"
+    }
+  }
+}
