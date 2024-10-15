@@ -32,7 +32,7 @@ const uniforms = [
     {
         name: 'iMouse',
         type: 'uniform2f',
-        data: [1.0,0.0],
+        data: [7.0,7.0],
     }
 ];
 export default uniforms;

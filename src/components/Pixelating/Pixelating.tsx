@@ -91,7 +91,6 @@ const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resoluti
                         context.vertexAttribPointer(texcoordLocation, 2, context.FLOAT, false, 0, 0);
 
                         //uniforms
-                        const iTimeLocation = context.getUniformLocation(program, 'iTime');
                         const iScaleWidth = context.getUniformLocation(program, 'iScaleWidth');
                         const iScaleHeight = context.getUniformLocation(program, 'iScaleHeight');
 
@@ -135,10 +134,11 @@ const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resoluti
                         const render = (time: number) => {
                             // convert to seconds
                             time *= 0.001;
-
                             context.useProgram(program);
+                            const iTimeLocation = context.getUniformLocation(program!, 'iTime');
                             context.uniform1f(iTimeLocation, time);
                             context.drawArrays(context.TRIANGLES, 0, 6);
+
                             requestAnimationFrame(render);
                         };
                         render(0);

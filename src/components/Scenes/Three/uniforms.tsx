@@ -55,7 +55,7 @@ const uniforms = [
     {
         name: 'iMouse',
         type: 'uniform2f',
-        data: [0,0],
+        data: [0.0,0.0],
     },
 ];
 export default uniforms;

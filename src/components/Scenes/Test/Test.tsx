@@ -86,7 +86,9 @@ const Test = () => {
     return (
         <>
             <div ref={statsRef}></div>
-            <Canvas className={/*`w-512 h-256 pixelated m-0.5 hidden`*/`hidden`} width={16} height={16}
+            <Canvas className={/*`w-512 h-256 pixelated m-0.5 hidden`*/`hidden`}
+                    width={16}
+                    height={16}
                     ref={pixelatingCanvasRef}>
                 {
                     context &&
