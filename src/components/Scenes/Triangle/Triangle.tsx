@@ -54,10 +54,7 @@ const Triangle = () => {
             const plane = new THREE.Mesh(geometry, material);
 
             const triangleGeometry = new THREE.BufferGeometry();
-            const uniformTrianglesData = uniforms.find((uniform) => {
-                return uniform.name === 'trianglesPoints';
-            })!.data;
-            const vertices = new Float32Array(uniformTrianglesData);
+            const vertices = new Float32Array(uniforms.trianglesPoints.data);
             const indices = [
                 0, 1, 2,
             ];
@@ -75,27 +72,32 @@ const Triangle = () => {
             //plane.rotation.y = Math.PI/4;
 
             const pointer = new THREE.Vector2(-999, -999);
-            const raycaster = new THREE.Raycaster();
-            const rect = (context.canvas as HTMLCanvasElement).getBoundingClientRect();
+            const rayCaster = new THREE.Raycaster();
+            const canvas = context.canvas as HTMLCanvasElement;
+            const rect = canvas.getBoundingClientRect();
 
-            const mouseMove = (event: MouseEvent) => {
+            const pointerDown = (event: MouseEvent) => {
+                // calculate pointer position in normalized device coordinates
+                // (-1 to +1) for both components
+
                 // calculate pointer position in normalized device coordinates
                 // (-1 to +1) for both components
                 pointer.x = ((event.clientX - rect.left) / context.canvas.width) * 2 - 1;
                 pointer.y = -((event.clientY - rect.top) / context.canvas.height) * 2 + 1;
+                rayCaster.setFromCamera(pointer, camera);
+                // calculate objects intersecting the picking ray
+                const intersects = rayCaster.intersectObjects([plane], false);
+                if (intersects.length > 0) {
+                    uniforms.iMouse.data = [
+                            Math.floor((intersects[0].uv!.x - 0.5) * 16),
+                            Math.floor((intersects[0].uv!.y - 0.5) * 16)
+                        ];
+                }
+
             };
-            (context.canvas as HTMLCanvasElement).addEventListener('mousemove', mouseMove);
+            canvas.addEventListener('pointerdown', pointerDown);
             const animate = () => {
                 plane.rotation.y -= 0.005;
-
-                raycaster.setFromCamera(pointer, camera);
-                // calculate objects intersecting the picking ray
-                const intersects = raycaster.intersectObjects([plane], false);
-                if (intersects.length > 0) {
-                    plane.material.color.set(0xff0000);
-                } else {
-                    plane.material.color.set(0xffffff);
-                }
 
                 cameraPerspective.position.x = -Math.cos(plane.rotation.y + Math.PI / 2);
                 cameraPerspective.position.z = Math.sin(plane.rotation.y + Math.PI / 2);

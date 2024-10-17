@@ -14,7 +14,7 @@ interface resolution {
 
 interface PixelatingProps {
     resolutions: Array<resolution>;
-    shaders: { vert: string, frag: string, uniforms: Array<uniform> };
+    shaders: { vert: string, frag: string, uniforms: any/*Array<uniform>*/ };
     onRatioChange: (pixelatingCanvasContext: WebGL2RenderingContext) => void;
 }
 
@@ -97,16 +97,17 @@ const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resoluti
                         context.uniform1f(iScaleWidth, resolutions[0]!.width);
                         context.uniform1f(iScaleHeight, resolutions[0]!.height);
 
-                        uniforms.forEach((uniform) => {
-                            const uniformLocation = context.getUniformLocation(program!, uniform.name);
-                            if (uniform.type === 'uniform3fv') {
-                                context.uniform3fv(uniformLocation, uniform.data);
+                        Object.keys(uniforms).forEach((uniformName) => {
+                            const uniformLocation = context.getUniformLocation(program!, uniformName);
+                            if (uniforms[uniformName].type === 'uniform3fv') {
+                                context.uniform3fv(uniformLocation, uniforms[uniformName].data);
                             }
-                            if (uniform.type === 'uniform3iv') {
-                                context.uniform3iv(uniformLocation, uniform.data);
+                            if (uniforms[uniformName].type === 'uniform3iv') {
+                                context.uniform3iv(uniformLocation, uniforms[uniformName].data);
                             }
-                            if (uniform.type === 'uniform2f') {
-                                context.uniform2f(uniformLocation, uniform.data[0], uniform.data[1]);
+                            if (uniforms[uniformName].type === 'uniform2f') {
+                                context.uniform2f(uniformLocation, uniforms[uniformName].data[0],
+                                    uniforms[uniformName].data[1]);
                             }
                         });
                         // Create a texture to render to
@@ -138,6 +139,11 @@ const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resoluti
                             const iTimeLocation = context.getUniformLocation(program!, 'iTime');
                             context.uniform1f(iTimeLocation, time);
                             context.drawArrays(context.TRIANGLES, 0, 6);
+
+                            if (uniforms.iMouse) {
+                                const iMouse = context.getUniformLocation(program!, 'iMouse');
+                                context.uniform2f(iMouse, uniforms.iMouse.data[0], uniforms.iMouse.data[1]);
+                            }
 
                             requestAnimationFrame(render);
                         };
