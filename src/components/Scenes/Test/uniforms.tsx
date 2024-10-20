@@ -1,5 +1,5 @@
-const uniforms = [
-    {
+const uniforms = {
+    trianglesPoints: {
         name: 'trianglesPoints',
         type: 'uniform3fv',
         data: [
@@ -29,13 +29,11 @@ const uniforms = [
             0.0,
         ],
     },
-    {
-        name: 'trianglesData',
+    trianglesData: {
         type: 'uniform3iv',
         data: [0, 4, 5, 0, 3, 5, 0, 1, 2, 3, 0, 2, 4, 5, 6, 5, 6, 7, 7, 3, 2, 7, 3, 5, 6, 4, 0, 6, 0, 1],
     },
-    {
-        name: 'trianglesColors',
+    trianglesColors: {
         type: 'uniform3fv',
         data: [
             //Cornell box
@@ -52,10 +50,10 @@ const uniforms = [
             1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
         ],
     },
-    {
-        name: 'iMouse',
+
+    iMouse: {
         type: 'uniform2f',
-        data: [0,0],
+        data: [0.0, 0.0],
     },
-];
+};
 export default uniforms;

@@ -8,6 +8,7 @@ import Canvas from '@/components/Canvas';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
+import {resolution} from '@/components/interfaces';
 import Pixelating from '@/components/Pixelating/Pixelating';
 
 const Triangle = () => {
@@ -16,6 +17,7 @@ const Triangle = () => {
 
     const { context } = useCanvasContext();
     let material: THREE.MeshBasicMaterial;
+    const currentResolution = { width: 16, height: 16 };
     useEffect(() => {
         if (context) {
             const stats = new Stats();
@@ -68,9 +70,6 @@ const Triangle = () => {
 
             renderer.setSize(width, height);
 
-            camera.position.z = 2.0;
-            //plane.rotation.y = Math.PI/4;
-
             const pointer = new THREE.Vector2(-999, -999);
             const rayCaster = new THREE.Raycaster();
             const canvas = context.canvas as HTMLCanvasElement;
@@ -79,25 +78,26 @@ const Triangle = () => {
             const pointerDown = (event: MouseEvent) => {
                 // calculate pointer position in normalized device coordinates
                 // (-1 to +1) for both components
-
-                // calculate pointer position in normalized device coordinates
-                // (-1 to +1) for both components
                 pointer.x = ((event.clientX - rect.left) / context.canvas.width) * 2 - 1;
                 pointer.y = -((event.clientY - rect.top) / context.canvas.height) * 2 + 1;
                 rayCaster.setFromCamera(pointer, camera);
                 // calculate objects intersecting the picking ray
                 const intersects = rayCaster.intersectObjects([plane], false);
-                if (intersects.length > 0) {
+                const uv = intersects[0].uv;
+                if (intersects.length > 0 && uv) {
                     uniforms.iMouse.data = [
-                            Math.floor((intersects[0].uv!.x - 0.5) * 16),
-                            Math.floor((intersects[0].uv!.y - 0.5) * 16)
+                            Math.floor((uv.x - 0.5) * currentResolution.width),
+                            Math.floor((uv.y - 0.5) * currentResolution.height)
                         ];
                 }
 
             };
             canvas.addEventListener('pointerdown', pointerDown);
+
+            camera.position.z = 2.0;
+            plane.rotation.y = Math.PI/4;
             const animate = () => {
-                plane.rotation.y -= 0.005;
+                //plane.rotation.y -= 0.005;
 
                 cameraPerspective.position.x = -Math.cos(plane.rotation.y + Math.PI / 2);
                 cameraPerspective.position.z = Math.sin(plane.rotation.y + Math.PI / 2);
@@ -116,14 +116,16 @@ const Triangle = () => {
         }
     }, [context]);
 
-    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext) => {
+
+    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, resolution:resolution) => {
         if (material) {
+            currentResolution.width = resolution.width;
+            currentResolution.height = resolution.height;
             material.map = new THREE.CanvasTexture(pixelatingCanvasContext.canvas);
             material.map.magFilter = THREE.NearestFilter;
             material.map.minFilter = THREE.LinearMipMapLinearFilter;
         }
     };
-
     //const windowDimensions = useWindowDimensions();
     return (
         <>
@@ -146,7 +148,7 @@ const Triangle = () => {
                             //TODO { width: windowDimensions.width, height: windowDimensions.height },
                         ]}
                         onRatioChange={onRatioChange}
-                        shaders={{ vert, frag, uniforms }}
+                        shaders={{ vert, frag, uniforms}}
                     />
                 }
             </Canvas>

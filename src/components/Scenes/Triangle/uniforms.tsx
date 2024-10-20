@@ -28,7 +28,7 @@ const uniforms = {
     },
     iMouse: {
         type: 'uniform2f',
-        data: [7.0, 7.0],
+        data: [0.0, 0.0],
     },
 };
 export default uniforms;

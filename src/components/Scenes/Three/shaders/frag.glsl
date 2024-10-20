@@ -238,19 +238,13 @@ vec3 rayTrace() {
 
     //}
 
-
-    /*if (
-    //Мы совмещали оси и отразили координату при создании pixel, поэтому отразим и iMouse.x
-    floor(pixel.coordinate.x*iScaleWidth)==floor(-iMouse.x) &&
-    floor(pixel.coordinate.y*iScaleHeight)==floor(iMouse.y)
+    //Делим на 2 по причине того что 0 в середине и расстояние от 0 до 1 равно половине ширины и высоты текстуры
+    if (
+    (floor(pixel.coordinate.x*(iScaleWidth/2.0))==iMouse.x) &&
+    (floor(pixel.coordinate.y*(iScaleHeight/2.0))==iMouse.y)
     ) {
-        pixel.color = vec3(0.0, 0.0, 1.0);
-    }*/
-    /*if (pixel.coordinate.x > .65) {
-        pixel.color = vec3(0.0, 0.0, 1.0);
-    } else {
         pixel.color = vec3(1.0, 0.0, 0.0);
-    }*/
+    }
     return pixel.color;
 }
 void main(void) {

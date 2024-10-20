@@ -196,17 +196,8 @@ vec3 rayTrace() {
 
     for (int i=0; i<scene.spheres.length(); i++) {
         float ray_length2 = computeSphereIntersection(ray, scene.spheres[i]);
-        /*vec4 tnor =
-        iEllipsoid(
-        ray.origin,
-        ray.direction,
-        vec3(1.0, 0.0, 0.0),
-        vec3(
-        0.5, 0.375-0.125*sin(iTime*2.0), 0.5)
-        );*/
-        if (/*tnor.x*/ray_length2 > 0.0 && ray_length2 < ray_length) {
+        if (ray_length2 > 0.0 && ray_length2 < ray_length) {
             ray_length = ray_length2;
-            //ray_length = tnor.x;
             //Точка пересечения луча со сферой
             vec3 P = ray.origin + ray_length*ray.direction;
             //Нормаль к этой точке
@@ -230,7 +221,6 @@ vec3 rayTrace() {
                         result += lamb * scene.spheres[i].material.Kd * scene.spheres[j].material.Ke;
                     }
                 }
-
                 pixel.color = result;
             }
         }
@@ -239,18 +229,13 @@ vec3 rayTrace() {
     //}
 
 
-    /*if (
-    //Мы совмещали оси и отразили координату при создании pixel, поэтому отразим и iMouse.x
-    floor(pixel.coordinate.x*iScaleWidth)==floor(-iMouse.x) &&
-    floor(pixel.coordinate.y*iScaleHeight)==floor(iMouse.y)
+    //Делим на 2 по причине того что 0 в середине и расстояние от 0 до 1 равно половине ширины и высоты текстуры
+    if (
+    (floor(pixel.coordinate.x*(iScaleWidth/2.0))==iMouse.x) &&
+    (floor(pixel.coordinate.y*(iScaleHeight/2.0))==iMouse.y)
     ) {
-        pixel.color = vec3(0.0, 0.0, 1.0);
-    }*/
-    /*if (pixel.coordinate.x > .65) {
-        pixel.color = vec3(0.0, 0.0, 1.0);
-    } else {
         pixel.color = vec3(1.0, 0.0, 0.0);
-    }*/
+    }
     return pixel.color;
 }
 void main(void) {

@@ -1,7 +1,6 @@
 {
   "company": {
-    "name": "Ray tracing",
-    "logo": "/assets/images/logo.png"
+    "name": "Ray tracing"
   },
   "about": {
     "sections": [

@@ -1,26 +1,12 @@
 import React, { useEffect } from 'react';
 import { useCanvasContext } from '@/hooks/useCanvas';
-
-interface uniform {
-    name: string;
-    type: string;
-    data: Array<number>;
-}
-
-interface resolution {
-    width: number;
-    height: number;
-}
-
-interface PixelatingProps {
-    resolutions: Array<resolution>;
-    shaders: { vert: string, frag: string, uniforms: any/*Array<uniform>*/ };
-    onRatioChange: (pixelatingCanvasContext: WebGL2RenderingContext) => void;
-}
-
-const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resolutions }: PixelatingProps) => {
+import {resolution} from '@/components/interfaces';
+const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resolutions }: {
+        resolutions: Array<resolution>;
+        shaders: { vert: string, frag: string, uniforms: any };
+        onRatioChange: (pixelatingCanvasContext: WebGL2RenderingContext, resolution:resolution) => void;
+    }) => {
         const { context } = useCanvasContext();
-
         const defaultValue = 0;
         let program: WebGLProgram | null;
         useEffect(() => {
@@ -154,20 +140,21 @@ const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resoluti
         }, [context]);
         const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
             if (context) {
-                onRatioChange(context);
                 const valueAsNumber = event.target.valueAsNumber;
-                context.canvas.width = resolutions[valueAsNumber]!.width;
-                context.canvas.height = resolutions[valueAsNumber]!.height;
+                const resolution = resolutions[valueAsNumber];
+                onRatioChange(context, resolution);
+                context.canvas.width = resolution.width;
+                context.canvas.height = resolution.height;
                 if (program) {
                     const iScaleWidth = context.getUniformLocation(program, 'iScaleWidth');
                     const iScaleHeight = context.getUniformLocation(program, 'iScaleHeight');
-                    context.uniform1f(iScaleWidth, resolutions[valueAsNumber]!.width);
-                    context.uniform1f(iScaleHeight, resolutions[valueAsNumber]!.height);
+                    context.uniform1f(iScaleWidth, resolution.width);
+                    context.uniform1f(iScaleHeight, resolution.height);
                 }
 
                 context.viewport(0, 0, context.canvas.width, context.canvas.height);
                 //event.target.nextSibling! - label element
-                event.target.nextSibling!.textContent = `${resolutions[valueAsNumber]!.width}x${resolutions[valueAsNumber]!.height}`;
+                event.target.nextSibling!.textContent = `${resolution.width}x${resolution.height}`;
             }
         };
         return (
