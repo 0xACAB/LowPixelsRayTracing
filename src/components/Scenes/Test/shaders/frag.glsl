@@ -167,7 +167,7 @@ AABB bbox = AABB(vec3(-1.0, -1.0, 1.0), vec3(1.0, 1.0, 0.0));
 vec3 rayTrace() {
     //Отразил здесь по y,
     //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
-    Pixel pixel = Pixel(vec2(v_texcoord.x, -v_texcoord.y), vec3(0.0, 0.0, 0.0));
+    Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), vec3(0.0, 0.0, 0.0));
 
     //camera.eye.z = -25.0+10.5*sin(iTime);
     camera.eye.x = 0.0;//sin(iTime)*2.2;
@@ -234,7 +234,7 @@ vec3 rayTrace() {
     (floor(pixel.coordinate.x*(iScaleWidth/2.0))==iMouse.x) &&
     (floor(pixel.coordinate.y*(iScaleHeight/2.0))==iMouse.y)
     ) {
-        pixel.color = vec3(1.0, 0.0, 0.0);
+        pixel.color = vec3(0.0, 0.0, 1.0);
     }
     return pixel.color;
 }

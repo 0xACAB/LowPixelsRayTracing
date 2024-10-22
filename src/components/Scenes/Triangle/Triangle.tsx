@@ -8,7 +8,7 @@ import Canvas from '@/components/Canvas';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import {resolution} from '@/components/interfaces';
+import { resolution } from '@/components/interfaces';
 import Pixelating from '@/components/Pixelating/Pixelating';
 
 const Triangle = () => {
@@ -63,10 +63,22 @@ const Triangle = () => {
             triangleGeometry.setIndex(indices);
             triangleGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
             const triangleMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            const triangleMesh = new THREE.Mesh(triangleGeometry, triangleMaterial);
+            const triangle = new THREE.Mesh(triangleGeometry, triangleMaterial);
+            triangle.material.side = THREE.DoubleSide;
 
-            scene.add(plane);
-            scene.add(triangleMesh);
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+            const lineGeometry = new THREE.BufferGeometry();
+            const line = new THREE.Line(lineGeometry, lineMaterial);
+            const points: Array<THREE.Vector3> = [];
+            points.push(new THREE.Vector3(0, 0, 1));
+            points.push(new THREE.Vector3(0, 0, 1));
+
+            const group = new THREE.Group();
+            group.add(plane);
+            group.add(triangle);
+            group.add(line);
+
+            scene.add(group);
 
             renderer.setSize(width, height);
 
@@ -83,24 +95,29 @@ const Triangle = () => {
                 rayCaster.setFromCamera(pointer, camera);
                 // calculate objects intersecting the picking ray
                 const intersects = rayCaster.intersectObjects([plane], false);
-                const uv = intersects[0].uv;
+                const uv = intersects[0]?.uv;
                 if (intersects.length > 0 && uv) {
                     uniforms.iMouse.data = [
-                            Math.floor((uv.x - 0.5) * currentResolution.width),
-                            Math.floor((uv.y - 0.5) * currentResolution.height)
-                        ];
+                        Math.floor((uv.x - 0.5) * currentResolution.width),
+                        Math.floor((uv.y - 0.5) * currentResolution.height),
+                    ];
+                    points[1] = new THREE.Vector3(
+                        (uv.x - 0.5) * plane.geometry.parameters.width,
+                        (uv.y - 0.5) * plane.geometry.parameters.height,
+                        0,
+                    );
+                    lineGeometry.setFromPoints(points);
                 }
 
             };
             canvas.addEventListener('pointerdown', pointerDown);
 
             camera.position.z = 2.0;
-            plane.rotation.y = Math.PI/4;
+            group.rotation.y = Math.PI / 4;
             const animate = () => {
-                //plane.rotation.y -= 0.005;
-
-                cameraPerspective.position.x = -Math.cos(plane.rotation.y + Math.PI / 2);
-                cameraPerspective.position.z = Math.sin(plane.rotation.y + Math.PI / 2);
+                group.rotation.y -= 0.005;
+                cameraPerspective.position.x = -Math.cos(group.rotation.y + Math.PI / 2);
+                cameraPerspective.position.z = Math.sin(group.rotation.y + Math.PI / 2);
                 cameraPerspective.lookAt(plane.position);
                 cameraPerspective.updateProjectionMatrix();
 
@@ -116,8 +133,7 @@ const Triangle = () => {
         }
     }, [context]);
 
-
-    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, resolution:resolution) => {
+    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, resolution: resolution) => {
         if (material) {
             currentResolution.width = resolution.width;
             currentResolution.height = resolution.height;
@@ -148,7 +164,7 @@ const Triangle = () => {
                             //TODO { width: windowDimensions.width, height: windowDimensions.height },
                         ]}
                         onRatioChange={onRatioChange}
-                        shaders={{ vert, frag, uniforms}}
+                        shaders={{ vert, frag, uniforms }}
                     />
                 }
             </Canvas>
