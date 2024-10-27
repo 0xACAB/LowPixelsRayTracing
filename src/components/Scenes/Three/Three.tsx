@@ -7,17 +7,19 @@ import Canvas from '@/components/Canvas';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
+import { resolution } from '@/components/interfaces';
 import Pixelating from '@/components/Pixelating/Pixelating';
 
 const Scene = () => {
     const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
     const { context } = useCanvasContext();
     let material: THREE.MeshBasicMaterial;
+    const currentResolution = { width: 16, height: 16 };
     useEffect(() => {
         if (context) {
             const scene = new THREE.Scene();
-            const width = window.innerWidth;//context.canvas.width;
-            const height = window.innerHeight * 0.9;//context.canvas.width;
+            const width = context.canvas.width;
+            const height = context.canvas.height
             const camera = new THREE.PerspectiveCamera(
                 90,
                 width / height,
@@ -29,27 +31,48 @@ const Scene = () => {
 
             const geometry = new THREE.PlaneGeometry(2.0, 2.0);
             material = new THREE.MeshBasicMaterial();
-            const plane = new THREE.Mesh(geometry, material);
 
             // set canvas as material.map (this could be done to any map, bump, displacement etc.)
             if (pixelatingCanvasRef.current) {
                 material.map = new THREE.CanvasTexture(pixelatingCanvasRef.current);
                 material.map.magFilter = THREE.NearestFilter;
                 material.map.minFilter = THREE.LinearMipMapLinearFilter;
-                material.side = THREE.DoubleSide;
             }
 
+            const plane = new THREE.Mesh(geometry, material);
             scene.add(plane);
 
-            camera.position.z = 2.0;
 
             renderer.setSize(width, height);
 
-            const animate = () => {
+            const pointer = new THREE.Vector2(-999, -999);
+            const rayCaster = new THREE.Raycaster();
+            const canvas = context.canvas as HTMLCanvasElement;
+            const rect = canvas.getBoundingClientRect();
 
-                //plane.rotation.y -= 0.01;
-                //plane.rotation.z -= 0.03;
-                material.map!.needsUpdate = true;
+            const pointerDown = (event: MouseEvent) => {
+                // calculate pointer position in normalized device coordinates
+                // (-1 to +1) for both components
+                pointer.x = ((event.clientX - rect.left) / context.canvas.width) * 2 - 1;
+                pointer.y = -((event.clientY - rect.top) / context.canvas.height) * 2 + 1;
+                rayCaster.setFromCamera(pointer, camera);
+                // calculate objects intersecting the picking ray
+                const intersects = rayCaster.intersectObjects([plane], false);
+                const uv = intersects[0]?.uv;
+                if (intersects.length > 0 && uv) {
+                    uniforms.iMouse.data = [
+                        Math.floor((uv.x - 0.5) * currentResolution.width),
+                        Math.floor((uv.y - 0.5) * currentResolution.height),
+                    ];
+                }
+
+            };
+            canvas.addEventListener('pointerdown', pointerDown);
+            camera.position.z = 2.0;
+            const animate = () => {
+                if (material.map) {
+                    material.map.needsUpdate = true;
+                }
                 renderer.render(scene, camera);
             };
 
@@ -57,8 +80,10 @@ const Scene = () => {
         }
     }, [context]);
 
-    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext) => {
+    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, resolution: resolution) => {
         if (material) {
+            currentResolution.width = resolution.width;
+            currentResolution.height = resolution.height;
             material.map = new THREE.CanvasTexture(pixelatingCanvasContext.canvas);
             material.map.magFilter = THREE.NearestFilter;
             material.map.minFilter = THREE.LinearMipMapLinearFilter;

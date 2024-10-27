@@ -50,7 +50,7 @@ const Triangle = () => {
                 material.map.minFilter = THREE.LinearMipMapLinearFilter;
                 material.side = THREE.DoubleSide;
                 material.transparent = true;
-                material.opacity = 0.2;
+                material.opacity = 0.4;
             }
 
             const plane = new THREE.Mesh(geometry, material);
@@ -66,17 +66,26 @@ const Triangle = () => {
             const triangle = new THREE.Mesh(triangleGeometry, triangleMaterial);
             triangle.material.side = THREE.DoubleSide;
 
-            const lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+            /*const lineMaterial = new THREE.LineBasicMaterial({ color: 0xFFD400 });
             const lineGeometry = new THREE.BufferGeometry();
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            const points: Array<THREE.Vector3> = [];
-            points.push(new THREE.Vector3(0, 0, 1));
-            points.push(new THREE.Vector3(0, 0, 1));
+            const line = new THREE.Line(lineGeometry, lineMaterial);*/
+
+            const lineMaterial2 = new THREE.LineBasicMaterial({ color: 0x00FF00 });
+            const lineGeometry2 = new THREE.BufferGeometry();
+            const line2 = new THREE.Line(lineGeometry2, lineMaterial2);
+
+            /*const pointsL1: Array<THREE.Vector3> = [
+                new THREE.Vector3(0, 0, 1),
+            ];*/
+            const pointsL2: Array<THREE.Vector3> = [
+                new THREE.Vector3(0, 0, 1),
+            ];
 
             const group = new THREE.Group();
             group.add(plane);
             group.add(triangle);
-            group.add(line);
+            //group.add(line);
+            group.add(line2);
 
             scene.add(group);
 
@@ -101,19 +110,30 @@ const Triangle = () => {
                         Math.floor((uv.x - 0.5) * currentResolution.width),
                         Math.floor((uv.y - 0.5) * currentResolution.height),
                     ];
-                    points[1] = new THREE.Vector3(
+                    /*pointsL1[1] = new THREE.Vector3(
                         (uv.x - 0.5) * plane.geometry.parameters.width,
                         (uv.y - 0.5) * plane.geometry.parameters.height,
                         0,
+                    );*/
+                    const xFloored = Math.floor((uv.x - 0.5) * currentResolution.width)/currentResolution.width;
+                    const yFloored = Math.floor((uv.y - 0.5) * currentResolution.height)/currentResolution.height;
+                    const xHalfPixel = 1/currentResolution.width*0.5;
+                    const yHalfPixel = 1/currentResolution.height*0.5;
+
+                    pointsL2[1] = new THREE.Vector3(
+                        3*(xFloored+xHalfPixel) * plane.geometry.parameters.width,
+                        3*(yFloored+yHalfPixel) * plane.geometry.parameters.height,
+                        -2,
                     );
-                    lineGeometry.setFromPoints(points);
+                    //lineGeometry.setFromPoints(pointsL1);
+                    lineGeometry2.setFromPoints(pointsL2);
                 }
 
             };
             canvas.addEventListener('pointerdown', pointerDown);
 
             camera.position.z = 2.0;
-            group.rotation.y = Math.PI / 4;
+            //group.rotation.y = Math.PI / 4;
             const animate = () => {
                 group.rotation.y -= 0.005;
                 cameraPerspective.position.x = -Math.cos(group.rotation.y + Math.PI / 2);

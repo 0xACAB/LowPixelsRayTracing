@@ -8,7 +8,7 @@ import Canvas from '@/components/Canvas';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import {resolution} from '@/components/interfaces';
+import { resolution } from '@/components/interfaces';
 import Pixelating from '@/components/Pixelating/Pixelating';
 
 const Test = () => {
@@ -50,12 +50,32 @@ const Test = () => {
                 material.map.minFilter = THREE.LinearMipMapLinearFilter;
                 material.side = THREE.DoubleSide;
                 material.transparent = true;
-                material.opacity = 1.0;
+                material.opacity = 0.4;
             }
 
             const plane = new THREE.Mesh(geometry, material);
 
-            scene.add(plane);
+            /*const lineMaterial = new THREE.LineBasicMaterial({ color: 0xFFD400 });
+            const lineGeometry = new THREE.BufferGeometry();
+            const line = new THREE.Line(lineGeometry, lineMaterial);*/
+
+            const lineMaterial2 = new THREE.LineBasicMaterial({ color: 0x00FF00 });
+            const lineGeometry2 = new THREE.BufferGeometry();
+            const line2 = new THREE.Line(lineGeometry2, lineMaterial2);
+
+            /*const pointsL1: Array<THREE.Vector3> = [
+                new THREE.Vector3(0, 0, 1),
+            ];*/
+            const pointsL2: Array<THREE.Vector3> = [
+                new THREE.Vector3(0, 0, 1),
+            ];
+
+            const group = new THREE.Group();
+            group.add(plane);
+            //group.add(line);
+            group.add(line2);
+
+            scene.add(group);
             renderer.setSize(width, height);
 
             const pointer = new THREE.Vector2(-999, -999);
@@ -75,20 +95,36 @@ const Test = () => {
                 if (intersects.length > 0 && uv) {
                     uniforms.iMouse.data = [
                         Math.floor((uv.x - 0.5) * currentResolution.width),
-                        Math.floor((uv.y - 0.5) * currentResolution.height)
+                        Math.floor((uv.y - 0.5) * currentResolution.height),
                     ];
+                    /*pointsL1[1] = new THREE.Vector3(
+                        (uv.x - 0.5) * plane.geometry.parameters.width,
+                        (uv.y - 0.5) * plane.geometry.parameters.height,
+                        0,
+                    );*/
+                    const xRounded = Math.floor((uv.x - 0.5) * currentResolution.width) / currentResolution.width;
+                    const yRounded = Math.floor((uv.y - 0.5) * currentResolution.height) / currentResolution.height;
+                    const xHalfPixel = 1 / currentResolution.width * 0.5;
+                    const yHalfPixel = 1 / currentResolution.height * 0.5;
+                    pointsL2[1] = new THREE.Vector3(
+                        3 * (xRounded + xHalfPixel) * plane.geometry.parameters.width,
+                        3 * (yRounded + yHalfPixel) * plane.geometry.parameters.height,
+                        -2,
+                    );
+                    //lineGeometry.setFromPoints(pointsL1);
+                    lineGeometry2.setFromPoints(pointsL2);
                 }
 
             };
             canvas.addEventListener('pointerdown', pointerDown);
 
             camera.position.z = 2.0;
-            plane.rotation.y = Math.PI/4;
+            //group.rotation.y = Math.PI/4;
             const animate = () => {
-                plane.rotation.y -= 0.005;
+                group.rotation.y -= 0.005;
 
-                cameraPerspective.position.x = -Math.cos(plane.rotation.y + Math.PI / 2);
-                cameraPerspective.position.z = Math.sin(plane.rotation.y + Math.PI / 2);
+                cameraPerspective.position.x = -Math.cos(group.rotation.y + Math.PI / 2);
+                cameraPerspective.position.z = Math.sin(group.rotation.y + Math.PI / 2);
                 cameraPerspective.lookAt(plane.position);
                 cameraPerspective.updateProjectionMatrix();
 
@@ -104,7 +140,7 @@ const Test = () => {
         }
     }, [context]);
 
-    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, resolution:resolution) => {
+    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, resolution: resolution) => {
         if (material) {
             currentResolution.width = resolution.width;
             currentResolution.height = resolution.height;

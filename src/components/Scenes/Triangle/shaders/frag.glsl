@@ -50,11 +50,6 @@ struct Intersection {
 //Material material;
 };
 
-struct AABB {
-    vec3 min;
-    vec3 max;
-};
-
 Intersection intersection() {
     Intersection I;
     I.t = FARAWAY;
@@ -88,55 +83,32 @@ vec3 triIntersect(in Ray R, in Triangle T) {
     return vec3(t, u, v);
 }
 
-bool segment_box_intersection(
-in vec3 q1,
-in vec3 dirinv,
-in vec3 boxmin,
-in vec3 boxmax,
-in float t// t of current intersection, used for pruning, see iq's comment.
-) {
-    // References:
-    //    https://tavianator.com/fast-branchless-raybounding-box-intersections/
-    vec3 T1 = dirinv*(boxmin - q1);
-    vec3 T2 = dirinv*(boxmax - q1);
-    vec3 Tmin = min(T1, T2);
-    vec3 Tmax = max(T1, T2);
-    float tmin = max(max(Tmin.x, Tmin.y), Tmin.z);
-    float tmax = min(min(Tmax.x, Tmax.y), Tmax.z);
-    return (tmax >= 0.0) && (tmin <= tmax) && (tmin <= t);
-}
-
 Scene scene;
 void init_scene() {
-    scene = Scene(Triangle(
+    scene = Scene(
+    Triangle(
     vec3[](
     trianglesPoints[trianglesData[0][0]],
     trianglesPoints[trianglesData[0][1]],
     trianglesPoints[trianglesData[0][2]]
     ),
     Material(vec3(1.0, 1.0, 1.0), trianglesColors[0])
-    ));
+    )
+    );
 }
-Camera camera = Camera(vec3(0.0, 0.0, 2.0));
-AABB bbox = AABB(vec3(-1.5, -1.5, -50.0), vec3(1.5, 1.5, -30.0));
+Camera camera = Camera(vec3(0.0, 0.0, 1.0));
 
 
 vec3 rayTrace() {
-    //Отразил здесь по y,
-    /*//чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
-    Pixel pixel = Pixel(vec2(v_texcoord.x, -v_texcoord.y), vec3(0.0, 0.0, 1.0));*/
-
     Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), vec3(0.0, 0.0, 1.0));
 
-    //camera.eye.z = -25.0+10.5*sin(iTime);
     camera.eye.x = 0.0;//sin(iTime)*2.2;
     //camera.eye.y = cos(iTime)*1.2;
+    //camera.eye.z = -25.0+10.5*sin(iTime);
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
 
-    vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
     float ray_length = FARAWAY;
-    //if (segment_box_intersection(ray.origin, invDir, bbox.min, bbox.max, I.t)) {
     //Только если прошли ограничение считаем пересечения с треугольником
     vec3 tuv=triIntersect(ray, scene.triangle);
     float t2 = tuv.x;
@@ -145,11 +117,7 @@ vec3 rayTrace() {
             pixel.color = scene.triangle.material.Ke;
         }
         ray_length = t2;
-    } else {
-        //Цвет AABB
-        //pixel.color += vec3(0.4, 0.4, 0.6);
     }
-    //}
 
     //Делим на 2 по причине того что 0 в середине и расстояние от 0 до 1 равно половине ширины и высоты текстуры
     if (
@@ -158,12 +126,6 @@ vec3 rayTrace() {
     ) {
         pixel.color = vec3(1.0, 0.0, 0.0);
     }
-    /*if (
-    ((pixel.coordinate.x*8.0)>floor(iMouse.x)) &&
-    ((pixel.coordinate.x*8.0)<ceil(iMouse.x))
-    ) {
-        pixel.color = vec3(1.0, 0.0, 0.0);
-    }*/
     return pixel.color;
 }
 void main(void) {
