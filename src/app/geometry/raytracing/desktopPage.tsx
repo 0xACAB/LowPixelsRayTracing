@@ -1,10 +1,11 @@
-'use client';
+'use client'
 import React, { useEffect, useState } from 'react';
 import Canvas from '@/components/Canvas';
 import Pixelating from '@/components/Pixelating/Pixelating';
 import vert from '@/components/Scenes/Test/shaders/vert.glsl';
 import frag from '@/components/Scenes/Test/shaders/frag.glsl';
 import uniforms from '@/components/Scenes/Test/uniforms';
+import Link from 'next/link';
 //import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 
 const DesktopPage = () => {
@@ -16,6 +17,7 @@ const DesktopPage = () => {
     });
     return (
         <div className={`bg-background grid gap-y-0 overflow-hidden`}>
+            <div className={`flex items-center flex-col`}><Link href="/">Назад к меню</Link></div>
             <div className={`relative bg-background flex items-center flex-col`}>
                 <div className="max-w-7xl mx-auto">
                     <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-16 lg:px-8 xl:mt-16">
@@ -26,7 +28,7 @@ const DesktopPage = () => {
                             </h1>
 
                             <div className={`flex items-center flex-col`}>
-                                <Canvas className={`w-512 h-512 pixelated`} width={16} height={16}>
+                                <Canvas className={`w-512 h-512 pixelated`} width={512} height={512}>
                                     {
                                         isMounted && <Pixelating
                                             resolutions={[

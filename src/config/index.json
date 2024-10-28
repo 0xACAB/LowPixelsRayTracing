@@ -6,7 +6,7 @@
     "sections": [
       {
         "name": "Нативная сцена",
-        "href": "/raytracing"
+        "href": "/geometry/raytracing"
       },
       {
         "name": "Основная сцена",

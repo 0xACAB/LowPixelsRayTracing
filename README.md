@@ -17,4 +17,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## Screens from pet
 ![Alt text](public/assets/images/screenshots/triangle_16x16.png)
 
+![Alt text](public/assets/images/screenshots/template_32x32.png)
+
 ![Alt text](public/assets/images/screenshots/template_16x16.png)
