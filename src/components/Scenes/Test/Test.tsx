@@ -1,15 +1,13 @@
-'use client'
+'use client';
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import Stats from 'three/addons/libs/stats.module.js';
 import { useCanvasContext } from '@/hooks/useCanvas';
-//import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 import Canvas from '@/components/Canvas';
 
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import { resolution } from '@/components/interfaces';
 import Pixelating from '@/components/Pixelating/Pixelating';
 
 const Test = () => {
@@ -18,7 +16,15 @@ const Test = () => {
 
     const { context } = useCanvasContext();
     let material: THREE.MeshBasicMaterial;
-    const currentResolution = { width: 16, height: 16 };
+    const resolutions = [
+        { width: 16, height: 16 },
+        { width: 32, height: 32 },
+        { width: 64, height: 64 },
+        { width: 128, height: 128 },
+        { width: 256, height: 256 },
+        { width: 512, height: 512 },
+    ];
+    let currentResolutionIndex = 0;
     useEffect(() => {
         if (context) {
             const stats = new Stats();
@@ -77,6 +83,7 @@ const Test = () => {
             group.add(line2);
 
             scene.add(group);
+
             renderer.setSize(width, height);
 
             const pointer = new THREE.Vector2(-999, -999);
@@ -94,22 +101,24 @@ const Test = () => {
                 const intersects = rayCaster.intersectObjects([plane], false);
                 const uv = intersects[0]?.uv;
                 if (intersects.length > 0 && uv) {
+                    const { width, height } = resolutions[currentResolutionIndex];
                     uniforms.iMouse.data = [
-                        Math.floor((uv.x - 0.5) * currentResolution.width),
-                        Math.floor((uv.y - 0.5) * currentResolution.height),
+                        Math.floor((uv.x - 0.5) * width),
+                        Math.floor((uv.y - 0.5) * height),
                     ];
                     /*pointsL1[1] = new THREE.Vector3(
                         (uv.x - 0.5) * plane.geometry.parameters.width,
                         (uv.y - 0.5) * plane.geometry.parameters.height,
                         0,
                     );*/
-                    const xRounded = Math.floor((uv.x - 0.5) * currentResolution.width) / currentResolution.width;
-                    const yRounded = Math.floor((uv.y - 0.5) * currentResolution.height) / currentResolution.height;
-                    const xHalfPixel = 1 / currentResolution.width * 0.5;
-                    const yHalfPixel = 1 / currentResolution.height * 0.5;
+                    const xFloored = Math.floor((uv.x - 0.5) * width) / width;
+                    const yFloored = Math.floor((uv.y - 0.5) * height) / height;
+                    const xHalfPixel = 1 / width * 0.5;
+                    const yHalfPixel = 1 / height * 0.5;
+
                     pointsL2[1] = new THREE.Vector3(
-                        3 * (xRounded + xHalfPixel) * plane.geometry.parameters.width,
-                        3 * (yRounded + yHalfPixel) * plane.geometry.parameters.height,
+                        3 * (xFloored + xHalfPixel) * plane.geometry.parameters.width,
+                        3 * (yFloored + yHalfPixel) * plane.geometry.parameters.height,
                         -2,
                     );
                     //lineGeometry.setFromPoints(pointsL1);
@@ -123,7 +132,6 @@ const Test = () => {
             //group.rotation.y = Math.PI/4;
             const animate = () => {
                 group.rotation.y -= 0.005;
-
                 cameraPerspective.position.x = -Math.cos(group.rotation.y + Math.PI / 2);
                 cameraPerspective.position.z = Math.sin(group.rotation.y + Math.PI / 2);
                 cameraPerspective.lookAt(plane.position);
@@ -141,10 +149,9 @@ const Test = () => {
         }
     }, [context]);
 
-    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, resolution: resolution) => {
+    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, inputValue: number) => {
         if (material) {
-            currentResolution.width = resolution.width;
-            currentResolution.height = resolution.height;
+            currentResolutionIndex = inputValue;
             material.map = new THREE.CanvasTexture(pixelatingCanvasContext.canvas);
             material.map.magFilter = THREE.NearestFilter;
             material.map.minFilter = THREE.LinearMipMapLinearFilter;
@@ -155,22 +162,14 @@ const Test = () => {
         <>
             <div ref={statsRef}></div>
             <Canvas className={/*`w-512 h-256 pixelated m-0.5 hidden`*/`hidden`}
-                    width={16}
-                    height={16}
+                    width={resolutions[currentResolutionIndex].width}
+                    height={resolutions[currentResolutionIndex].height}
                     ref={pixelatingCanvasRef}>
                 {
                     context &&
                     <Pixelating
-                        resolutions={[
-                            { width: 16, height: 16 },
-                            { width: 32, height: 32 },
-                            { width: 64, height: 64 },
-                            { width: 128, height: 128 },
-                            { width: 256, height: 256 },
-                            { width: 512, height: 512 },
-                            { width: window.innerWidth, height: window.innerHeight },
-                            //TODO { width: windowDimensions.width, height: windowDimensions.height },
-                        ]}
+                        resolutions={resolutions}
+                        defaultResolution={currentResolutionIndex}
                         onRatioChange={onRatioChange}
                         shaders={{ vert, frag, uniforms }}
                     />

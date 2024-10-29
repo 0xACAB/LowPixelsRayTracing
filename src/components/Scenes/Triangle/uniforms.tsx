@@ -1,5 +1,5 @@
 const uniforms = {
-    trianglesPoints: {
+    trianglePoints: {
         type: 'uniform3fv',
         data: [
             1.0,
@@ -15,11 +15,11 @@ const uniforms = {
             -1.0,
         ],
     },
-    trianglesData: {
+    indicesData: {
         type: 'uniform3iv',
         data: [0, 1, 2],
     },
-    trianglesColors: {
+    triangleColor: {
         type: 'uniform3fv',
         data: [
             //white triangle

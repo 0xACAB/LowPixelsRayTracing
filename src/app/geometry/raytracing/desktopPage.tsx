@@ -6,12 +6,20 @@ import vert from '@/components/Scenes/Test/shaders/vert.glsl';
 import frag from '@/components/Scenes/Test/shaders/frag.glsl';
 import uniforms from '@/components/Scenes/Test/uniforms';
 import Link from 'next/link';
-//import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 
 const DesktopPage = () => {
     const mobile = false;
     const [isMounted, setIsMounted] = useState(false);
-    //const windowDimensions = useWindowDimensions();
+
+    const resolutions = [
+        { width: 16, height: 16 },
+        { width: 32, height: 32 },
+        { width: 64, height: 64 },
+        { width: 128, height: 128 },
+        { width: 256, height: 256 },
+        { width: 512, height: 512 },
+    ];
+    let currentResolutionIndex = 0;
     useEffect(() => {
         setIsMounted(true);
     });
@@ -31,16 +39,8 @@ const DesktopPage = () => {
                                 <Canvas className={`w-512 h-512 pixelated`} width={512} height={512}>
                                     {
                                         isMounted && <Pixelating
-                                            resolutions={[
-                                                { width: 16, height: 16 },
-                                                { width: 32, height: 32 },
-                                                { width: 64, height: 64 },
-                                                { width: 128, height: 128 },
-                                                { width: 256, height: 256 },
-                                                { width: 512, height: 512 },
-                                                { width: window.innerWidth, height: window.innerHeight },
-                                                //TODO { width: windowDimensions.width, height: windowDimensions.height },
-                                            ]}
+                                            resolutions={resolutions}
+                                            defaultResolution={currentResolutionIndex}
                                             onRatioChange={() => {}}
                                             shaders={{ vert, frag, uniforms }}
                                         />

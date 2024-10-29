@@ -8,11 +8,10 @@ uniform vec2 iMouse;
 uniform float iScaleWidth;
 uniform float iScaleHeight;
 
-#define trianglesCount 1
-#define pointsCount 8
-uniform vec3 trianglesPoints[pointsCount];
-uniform ivec3 trianglesData[trianglesCount];
-uniform vec3 trianglesColors[trianglesCount];
+#define pointsCount 3
+uniform vec3 trianglePoints[pointsCount];
+uniform ivec3 indicesData;
+uniform vec3 triangleColor;
 
 const float FARAWAY=1e30;
 struct Pixel {
@@ -88,11 +87,11 @@ void init_scene() {
     scene = Scene(
     Triangle(
     vec3[](
-    trianglesPoints[trianglesData[0][0]],
-    trianglesPoints[trianglesData[0][1]],
-    trianglesPoints[trianglesData[0][2]]
+    trianglePoints[indicesData[0]],
+    trianglePoints[indicesData[1]],
+    trianglePoints[indicesData[2]]
     ),
-    Material(vec3(1.0, 1.0, 1.0), trianglesColors[0])
+    Material(vec3(1.0, 1.0, 1.0), triangleColor)
     )
     );
 }

@@ -12,7 +12,7 @@ const About = (() => {
                 <div className="flex flex-wrap gap-x-4 items-center justify-center mt-4">
                         {
                             sections.map((section, index) => (
-                                <div>
+                                <div key={index}>
                                     <Link
                                         className={`hover:text-primary text-base cursor-pointer leading-4 text-gray-800 dark:text-gray-400 dark:hover:text-white`}
                                         href={section.href}

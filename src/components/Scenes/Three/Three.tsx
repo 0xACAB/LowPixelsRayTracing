@@ -2,20 +2,26 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useCanvasContext } from '@/hooks/useCanvas';
-//import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 import Canvas from '@/components/Canvas';
 
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import { resolution } from '@/components/interfaces';
 import Pixelating from '@/components/Pixelating/Pixelating';
 
 const Scene = () => {
     const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
     const { context } = useCanvasContext();
     let material: THREE.MeshBasicMaterial;
-    const currentResolution = { width: 16, height: 16 };
+    const resolutions = [
+        { width: 16, height: 16 },
+        { width: 32, height: 32 },
+        { width: 64, height: 64 },
+        { width: 128, height: 128 },
+        { width: 256, height: 256 },
+        { width: 512, height: 512 },
+    ];
+    let currentResolutionIndex = 0;
     useEffect(() => {
         if (context) {
             const scene = new THREE.Scene();
@@ -61,14 +67,16 @@ const Scene = () => {
                 const intersects = rayCaster.intersectObjects([plane], false);
                 const uv = intersects[0]?.uv;
                 if (intersects.length > 0 && uv) {
+                    const { width, height } = resolutions[currentResolutionIndex];
                     uniforms.iMouse.data = [
-                        Math.floor((uv.x - 0.5) * currentResolution.width),
-                        Math.floor((uv.y - 0.5) * currentResolution.height),
+                        Math.floor((uv.x - 0.5) * width),
+                        Math.floor((uv.y - 0.5) * height),
                     ];
                 }
 
             };
             canvas.addEventListener('pointerdown', pointerDown);
+
             camera.position.z = 2.0;
             const animate = () => {
                 if (material.map) {
@@ -81,10 +89,9 @@ const Scene = () => {
         }
     }, [context]);
 
-    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, resolution: resolution) => {
+    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, inputValue: number) => {
         if (material) {
-            currentResolution.width = resolution.width;
-            currentResolution.height = resolution.height;
+            currentResolutionIndex = inputValue;
             material.map = new THREE.CanvasTexture(pixelatingCanvasContext.canvas);
             material.map.magFilter = THREE.NearestFilter;
             material.map.minFilter = THREE.LinearMipMapLinearFilter;
@@ -93,21 +100,15 @@ const Scene = () => {
 
     //const windowDimensions = useWindowDimensions();
     return (
-        <Canvas className={/*`w-512 h-256 pixelated m-0.5 hidden`*/`hidden`} width={16} height={16}
+        <Canvas className={/*`w-512 h-256 pixelated m-0.5 hidden`*/`hidden`}
+                width={resolutions[currentResolutionIndex].width}
+                height={resolutions[currentResolutionIndex].height}
                 ref={pixelatingCanvasRef}>
             {
                 context &&
                 <Pixelating
-                    resolutions={[
-                        { width: 16, height: 16 },
-                        { width: 32, height: 32 },
-                        { width: 64, height: 64 },
-                        { width: 128, height: 128 },
-                        { width: 256, height: 256 },
-                        { width: 512, height: 512 },
-                        { width: window.innerWidth, height: window.innerHeight },
-                        //TODO { width: windowDimensions.width, height: windowDimensions.height },
-                    ]}
+                    resolutions={resolutions}
+                    defaultResolution={currentResolutionIndex}
                     onRatioChange={onRatioChange}
                     shaders={{ vert, frag, uniforms }}
                 />

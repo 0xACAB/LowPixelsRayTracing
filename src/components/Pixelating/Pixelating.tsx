@@ -1,18 +1,21 @@
 import React, { useEffect } from 'react';
 import { useCanvasContext } from '@/hooks/useCanvas';
-import {resolution} from '@/components/interfaces';
-const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resolutions }: {
-        resolutions: Array<resolution>;
-        shaders: { vert: string, frag: string, uniforms: any };
-        onRatioChange: (pixelatingCanvasContext: WebGL2RenderingContext, resolution:resolution) => void;
-    }) => {
+import { resolution } from '@/components/interfaces';
+
+const Pixelating = (
+        { onRatioChange, shaders: { vert, frag, uniforms }, resolutions, defaultResolution = 0 }: {
+            resolutions: Array<resolution>;
+            defaultResolution?: number,
+            shaders: { vert: string, frag: string, uniforms: any };
+            onRatioChange: (pixelatingCanvasContext: WebGL2RenderingContext, resolution: number) => void;
+        }) => {
         const { context } = useCanvasContext();
-        const defaultValue = 0;
+        const defaultValue = defaultResolution;
         let program: WebGLProgram | null;
         useEffect(() => {
             if (context) {
-                context.canvas.width = resolutions[defaultValue]!.width;
-                context.canvas.height = resolutions[defaultValue]!.height;
+                context.canvas.width = resolutions[defaultValue].width;
+                context.canvas.height = resolutions[defaultValue].height;
                 context.viewport(0, 0, context.canvas.width, context.canvas.height);
                 // Функция создания шейдера
                 const getShader = (type: GLenum, shaderCode: string) => {
@@ -80,8 +83,8 @@ const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resoluti
                         const iScaleWidth = context.getUniformLocation(program, 'iScaleWidth');
                         const iScaleHeight = context.getUniformLocation(program, 'iScaleHeight');
 
-                        context.uniform1f(iScaleWidth, resolutions[0]!.width);
-                        context.uniform1f(iScaleHeight, resolutions[0]!.height);
+                        context.uniform1f(iScaleWidth, resolutions[defaultValue].width);
+                        context.uniform1f(iScaleHeight, resolutions[defaultValue].height);
 
                         Object.keys(uniforms).forEach((uniformName) => {
                             const uniformLocation = context.getUniformLocation(program!, uniformName);
@@ -141,8 +144,8 @@ const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resoluti
         const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
             if (context) {
                 const valueAsNumber = event.target.valueAsNumber;
+                onRatioChange(context, valueAsNumber);
                 const resolution = resolutions[valueAsNumber];
-                onRatioChange(context, resolution);
                 context.canvas.width = resolution.width;
                 context.canvas.height = resolution.height;
                 if (program) {
@@ -170,7 +173,7 @@ const Pixelating = ({ onRatioChange, shaders: { vert, frag, uniforms }, resoluti
                     onChange={onChange}
                 />
                 <label htmlFor="slider">
-                    {`${resolutions[defaultValue]!.width}x${resolutions[defaultValue]!.height}`}
+                    {`${resolutions[defaultValue].width}x${resolutions[defaultValue].height}`}
                 </label>
 
             </>
