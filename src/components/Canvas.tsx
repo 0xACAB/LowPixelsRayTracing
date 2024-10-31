@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useEffect, ReactNode, useState, useRef, forwardRef, ForwardedRef } from 'react';
 
 import { CanvasContext } from '@/hooks/useCanvas';
@@ -6,8 +6,8 @@ import { CanvasContext } from '@/hooks/useCanvas';
 interface CanvasProps {
     children: ReactNode,
     className: string,
-    width: number,
-    height: number
+    width?: number,
+    height?: number
 }
 
 /**
@@ -19,8 +19,8 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(
         {
             children,
             className,
-            width,
-            height,
+            width = 0,
+            height = 0,
         },
         ref: ForwardedRef<HTMLCanvasElement> | any,
     ) => {

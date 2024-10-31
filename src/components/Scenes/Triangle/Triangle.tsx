@@ -3,7 +3,6 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import Stats from 'three/addons/libs/stats.module.js';
 import { useCanvasContext } from '@/hooks/useCanvas';
-import Canvas from '@/components/Canvas';
 
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
@@ -15,7 +14,6 @@ const Triangle = () => {
     const statsRef = useRef<HTMLDivElement>(null);
 
     const { context } = useCanvasContext();
-    let material: THREE.MeshBasicMaterial;
     const resolutions = [
         { width: 16, height: 16 },
         { width: 32, height: 32 },
@@ -25,6 +23,7 @@ const Triangle = () => {
         { width: 512, height: 512 },
     ];
     let currentResolutionIndex = 0;
+    let material: THREE.MeshBasicMaterial;
     useEffect(() => {
         if (context) {
             const stats = new Stats();
@@ -44,7 +43,7 @@ const Triangle = () => {
 
             const cameraPerspective = new THREE.PerspectiveCamera(90, 1 / 1, 1, 1000);
             const helper = new THREE.CameraHelper(cameraPerspective);
-            scene.add(helper);
+
 
             const renderer = new THREE.WebGLRenderer({ canvas: context.canvas });
 
@@ -92,6 +91,7 @@ const Triangle = () => {
             //group.add(line);
             group.add(line2);
 
+            scene.add(helper);
             scene.add(group);
 
             renderer.setSize(width, height);
@@ -110,7 +110,7 @@ const Triangle = () => {
                 // calculate objects intersecting the picking ray
                 const intersects = rayCaster.intersectObjects([plane], false);
                 const uv = intersects[0]?.uv;
-                if (intersects.length > 0 && uv) {
+                if (uv) {
                     const { width, height } = resolutions[currentResolutionIndex];
                     uniforms.iMouse.data = [
                         Math.floor((uv.x - 0.5) * width),
@@ -165,27 +165,24 @@ const Triangle = () => {
             material.map = new THREE.CanvasTexture(pixelatingCanvasContext.canvas);
             material.map.magFilter = THREE.NearestFilter;
             material.map.minFilter = THREE.LinearMipMapLinearFilter;
+            uniforms.iMouse.data = [-999, -999];
         }
     };
-    //const windowDimensions = useWindowDimensions();
+
     return (
         <>
             <div ref={statsRef}></div>
-            <Canvas className={/*`w-512 h-256 pixelated m-0.5 hidden`*/`hidden`}
-                    width={resolutions[currentResolutionIndex].width}
-                    height={resolutions[currentResolutionIndex].height}
-                    ref={pixelatingCanvasRef}>
-                {
-                    context &&
-                    <Pixelating
-                        resolutions={resolutions}
-                        defaultResolution={currentResolutionIndex}
-                        onRatioChange={onRatioChange}
-                        shaders={{ vert, frag, uniforms }}
-                    />
-                }
-            </Canvas>
-
+            <canvas id="canvas" className={`hidden`} ref={pixelatingCanvasRef}></canvas>
+            {
+                context &&
+                <Pixelating
+                    canvasRef={pixelatingCanvasRef}
+                    onRatioChange={onRatioChange}
+                    shaders={{ vert, frag, uniforms }}
+                    resolutions={resolutions}
+                    defaultResolution={currentResolutionIndex}
+                />
+            }
         </>
     );
 };

@@ -1,19 +1,23 @@
-import React, { useEffect } from 'react';
-import { useCanvasContext } from '@/hooks/useCanvas';
+import React, { useEffect, useState } from 'react';
 import { resolution } from '@/components/interfaces';
 
 const Pixelating = (
-        { onRatioChange, shaders: { vert, frag, uniforms }, resolutions, defaultResolution = 0 }: {
+        { onRatioChange, shaders: { vert, frag, uniforms }, canvasRef, resolutions, defaultResolution = 0 }: {
+            canvasRef: any,
+            onRatioChange: (pixelatingCanvasContext: WebGL2RenderingContext, resolution: number) => void;
+            shaders: { vert: string, frag: string, uniforms: any };
             resolutions: Array<resolution>;
             defaultResolution?: number,
-            shaders: { vert: string, frag: string, uniforms: any };
-            onRatioChange: (pixelatingCanvasContext: WebGL2RenderingContext, resolution: number) => void;
         }) => {
-        const { context } = useCanvasContext();
+        const [
+            context,
+            setContext,
+        ] = useState<WebGL2RenderingContext | undefined>(canvasRef.current.getContext('webgl2'));
         const defaultValue = defaultResolution;
         let program: WebGLProgram | null;
         useEffect(() => {
             if (context) {
+                setContext(context);
                 context.canvas.width = resolutions[defaultValue].width;
                 context.canvas.height = resolutions[defaultValue].height;
                 context.viewport(0, 0, context.canvas.width, context.canvas.height);

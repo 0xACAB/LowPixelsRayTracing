@@ -1,8 +1,7 @@
-'use client'
+'use client';
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useCanvasContext } from '@/hooks/useCanvas';
-import Canvas from '@/components/Canvas';
 
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
@@ -12,7 +11,6 @@ import Pixelating from '@/components/Pixelating/Pixelating';
 const Scene = () => {
     const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
     const { context } = useCanvasContext();
-    let material: THREE.MeshBasicMaterial;
     const resolutions = [
         { width: 16, height: 16 },
         { width: 32, height: 32 },
@@ -22,11 +20,12 @@ const Scene = () => {
         { width: 512, height: 512 },
     ];
     let currentResolutionIndex = 0;
+    let material: THREE.MeshBasicMaterial;
     useEffect(() => {
         if (context) {
             const scene = new THREE.Scene();
             const width = context.canvas.width;
-            const height = context.canvas.height
+            const height = context.canvas.height;
             const camera = new THREE.PerspectiveCamera(
                 90,
                 width / height,
@@ -49,7 +48,6 @@ const Scene = () => {
             const plane = new THREE.Mesh(geometry, material);
             scene.add(plane);
 
-
             renderer.setSize(width, height);
 
             const pointer = new THREE.Vector2(-999, -999);
@@ -66,7 +64,7 @@ const Scene = () => {
                 // calculate objects intersecting the picking ray
                 const intersects = rayCaster.intersectObjects([plane], false);
                 const uv = intersects[0]?.uv;
-                if (intersects.length > 0 && uv) {
+                if (uv) {
                     const { width, height } = resolutions[currentResolutionIndex];
                     uniforms.iMouse.data = [
                         Math.floor((uv.x - 0.5) * width),
@@ -98,22 +96,20 @@ const Scene = () => {
         }
     };
 
-    //const windowDimensions = useWindowDimensions();
     return (
-        <Canvas className={/*`w-512 h-256 pixelated m-0.5 hidden`*/`hidden`}
-                width={resolutions[currentResolutionIndex].width}
-                height={resolutions[currentResolutionIndex].height}
-                ref={pixelatingCanvasRef}>
+        <>
+            <canvas id="canvas" className={`hidden`} ref={pixelatingCanvasRef}></canvas>
             {
                 context &&
                 <Pixelating
-                    resolutions={resolutions}
-                    defaultResolution={currentResolutionIndex}
+                    canvasRef={pixelatingCanvasRef}
                     onRatioChange={onRatioChange}
                     shaders={{ vert, frag, uniforms }}
+                    resolutions={resolutions}
+                    defaultResolution={currentResolutionIndex}
                 />
             }
-        </Canvas>
+        </>
     );
 };
 

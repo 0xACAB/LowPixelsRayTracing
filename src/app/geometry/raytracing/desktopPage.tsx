@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Canvas from '@/components/Canvas';
 import Pixelating from '@/components/Pixelating/Pixelating';
 import vert from '@/components/Scenes/Test/shaders/vert.glsl';
@@ -8,7 +8,7 @@ import uniforms from '@/components/Scenes/Test/uniforms';
 import Link from 'next/link';
 
 const DesktopPage = () => {
-    const mobile = false;
+    const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
     const [isMounted, setIsMounted] = useState(false);
 
     const resolutions = [
@@ -30,25 +30,20 @@ const DesktopPage = () => {
                 <div className="max-w-7xl mx-auto">
                     <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-16 lg:px-8 xl:mt-16">
                         <div className="sm:text-left lg:text-left">
-                            <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-                                <span className="block clear-both">{mobile ? 'Мобильная' : 'Десктопная'}</span>{' '}
-                                <span className={`block text-primary`}>{'версия'}</span>
-                            </h1>
-
                             <div className={`flex items-center flex-col`}>
-                                <Canvas className={`w-512 h-512 pixelated`} width={512} height={512}>
-                                    {
-                                        isMounted && <Pixelating
-                                            resolutions={resolutions}
-                                            defaultResolution={currentResolutionIndex}
-                                            onRatioChange={() => {}}
-                                            shaders={{ vert, frag, uniforms }}
-                                        />
-                                    }
-                                </Canvas>
-                            </div>
+                                <canvas id="canvas" className={`w-512 h-512 pixelated`} width={512} height={512} ref={pixelatingCanvasRef}></canvas>
+                                {
+                                    isMounted && <Pixelating
+                                        canvasRef={pixelatingCanvasRef}
+                                        resolutions={resolutions}
+                                        defaultResolution={currentResolutionIndex}
+                                        onRatioChange={() => {}}
+                                        shaders={{ vert, frag, uniforms }}
+                                    />
+                                }
                         </div>
-                    </main>
+                </div>
+            </main>
                 </div>
             </div>
         </div>
