@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import Canvas from '@/components/Canvas';
 import Pixelating from '@/components/Pixelating/Pixelating';
 import vert from '@/components/Scenes/Test/shaders/vert.glsl';
 import frag from '@/components/Scenes/Test/shaders/frag.glsl';

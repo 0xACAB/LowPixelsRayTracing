@@ -1,5 +1,4 @@
 import React from 'react';
-import Canvas from "@/components/Canvas";
 import ThreeScene from "@/components/Scenes/Three/Three";
 import Link from 'next/link';
 const DesktopPage = () => {
