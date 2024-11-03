@@ -19,6 +19,10 @@
       {
         "name": "Сцена с треугольником",
         "href": "/geometry/triangle"
+      },
+      {
+        "name": "Тестовая сцена",
+        "href": "/geometry/playground"
       }
     ],
     "socialMedia": {
