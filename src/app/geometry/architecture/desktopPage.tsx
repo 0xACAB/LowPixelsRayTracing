@@ -11,9 +11,7 @@ const DesktopPage = () => {
             <main className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8`}>
               <div className={`sm:text-left lg:text-left`}>
                 <div className={`flex items-center flex-col`}>
-                  <Canvas className={`w-full h-4/5 pixelated`} width={512} height={512}>
                     <ThreeScene />
-                  </Canvas>
                 </div>
               </div>
             </main>

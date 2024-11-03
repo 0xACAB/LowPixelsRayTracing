@@ -2,7 +2,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import Stats from 'three/addons/libs/stats.module.js';
-import { useCanvasContext } from '@/hooks/useCanvas';
 
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
@@ -10,10 +9,10 @@ import uniforms from './uniforms';
 import Pixelating from '@/components/Pixelating/Pixelating';
 
 const Test = () => {
-    const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
     const statsRef = useRef<HTMLDivElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
 
-    const { context } = useCanvasContext();
     const resolutions = [
         { width: 16, height: 16 },
         { width: 32, height: 32 },
@@ -24,8 +23,12 @@ const Test = () => {
     ];
     let currentResolutionIndex = 0;
     let material: THREE.MeshBasicMaterial;
+    let context: WebGL2RenderingContext | null | undefined;
     useEffect(() => {
-        if (context) {
+        context = canvasRef?.current?.getContext('webgl2');
+        if (!context) {
+            return;
+        } else {
             const stats = new Stats();
             if (statsRef.current) {
                 statsRef.current.appendChild(stats.dom);
@@ -88,12 +91,14 @@ const Test = () => {
             const pointer = new THREE.Vector2(-999, -999);
             const rayCaster = new THREE.Raycaster();
             const canvas = context.canvas as HTMLCanvasElement;
-            const rect = canvas.getBoundingClientRect();
 
             const pointerDown = (event: MouseEvent) => {
                 // calculate pointer position in normalized device coordinates
                 // (-1 to +1) for both components
+                const rect = canvas.getBoundingClientRect();
+                // @ts-ignore context!
                 pointer.x = ((event.clientX - rect.left) / context.canvas.width) * 2 - 1;
+                // @ts-ignore context!
                 pointer.y = -((event.clientY - rect.top) / context.canvas.height) * 2 + 1;
                 rayCaster.setFromCamera(pointer, camera);
                 // calculate objects intersecting the picking ray
@@ -146,6 +151,11 @@ const Test = () => {
 
             renderer.setAnimationLoop(animate);
         }
+
+        return () => {
+            // this side effect will run before the component is unmounted
+            context?.getExtension('WEBGL_lose_context')?.loseContext();
+        };
     }, [context]);
 
     const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, inputValue: number) => {
@@ -154,23 +164,22 @@ const Test = () => {
             material.map = new THREE.CanvasTexture(pixelatingCanvasContext.canvas);
             material.map.magFilter = THREE.NearestFilter;
             material.map.minFilter = THREE.LinearMipMapLinearFilter;
+            uniforms.iMouse.data = [-999, -999];
         }
     };
 
     return (
         <>
             <div ref={statsRef}></div>
+            <canvas id="canvas" className={`pixelated`} width={512} height={512} ref={canvasRef}></canvas>
             <canvas id="canvas" className={`hidden`} ref={pixelatingCanvasRef}></canvas>
-            {
-                context &&
-                <Pixelating
-                    canvasRef={pixelatingCanvasRef}
-                    onRatioChange={onRatioChange}
-                    shaders={{ vert, frag, uniforms }}
-                    resolutions={resolutions}
-                    defaultResolution={currentResolutionIndex}
-                />
-            }
+            <Pixelating
+                canvasRef={pixelatingCanvasRef}
+                onRatioChange={onRatioChange}
+                shaders={{ vert, frag, uniforms }}
+                resolutions={resolutions}
+                defaultResolution={currentResolutionIndex}
+            />
         </>
     );
 };

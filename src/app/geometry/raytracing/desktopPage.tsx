@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import Canvas from '@/components/Canvas';
 import Pixelating from '@/components/Pixelating/Pixelating';
@@ -31,7 +31,12 @@ const DesktopPage = () => {
                     <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-16 lg:px-8 xl:mt-16">
                         <div className="sm:text-left lg:text-left">
                             <div className={`flex items-center flex-col`}>
-                                <canvas id="canvas" className={`w-512 h-512 pixelated`} width={512} height={512} ref={pixelatingCanvasRef}></canvas>
+                                <canvas id="canvas"
+                                        className={`w-512 h-512 pixelated`}
+                                        width={512}
+                                        height={512}
+                                        ref={pixelatingCanvasRef}
+                                ></canvas>
                                 {
                                     isMounted && <Pixelating
                                         canvasRef={pixelatingCanvasRef}
@@ -41,9 +46,9 @@ const DesktopPage = () => {
                                         shaders={{ vert, frag, uniforms }}
                                     />
                                 }
+                            </div>
                         </div>
-                </div>
-            </main>
+                    </main>
                 </div>
             </div>
         </div>

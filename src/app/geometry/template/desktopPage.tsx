@@ -1,5 +1,4 @@
 import React from 'react';
-import Canvas from "@/components/Canvas";
 import TestScene from "@/components/Scenes/Test/Test";
 import Link from 'next/link';
 const DesktopPage = () => {
@@ -8,12 +7,10 @@ const DesktopPage = () => {
         <div className={`flex items-center flex-col`}><Link href="/">Назад к меню</Link></div>
         <div className={`relative bg-background flex items-center flex-col`}>
           <div className={`max-w-7xl mx-auto`}>
-            <main className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8`}>
+            <main className={`mx-auto max-w-7xl`}>
               <div className={`sm:text-left lg:text-left`}>
                 <div className={`flex items-center flex-col`}>
-                  <Canvas className={`w-full h-4/5 pixelated`} width={512} height={512}>
                     <TestScene />
-                  </Canvas>
                 </div>
               </div>
             </main>

@@ -1,44 +1,49 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { resolution } from '@/components/interfaces';
-
+// Функция создания шейдера
+const getShader = (context: WebGL2RenderingContext, type: GLenum, shaderCode: string) => {
+    const shader = context.createShader(type);
+    if (shader) {
+        context.shaderSource(shader, shaderCode);
+        context.compileShader(shader);
+        if (!context.getShaderParameter(shader, context.COMPILE_STATUS)) {
+            console.log('Ошибка компиляции шейдера: ' + context.getShaderInfoLog(shader));
+            context.deleteShader(shader);
+            return null;
+        }
+        return shader;
+    } else {
+        return null;
+    }
+};
 const Pixelating = (
-        { onRatioChange, shaders: { vert, frag, uniforms }, canvasRef, resolutions, defaultResolution = 0 }: {
-            canvasRef: any,
+        {
+            canvasRef,
+            onRatioChange,
+            shaders: { vert, frag, uniforms },
+            resolutions,
+            defaultResolution = 0,
+        }: {
+            canvasRef: React.RefObject<HTMLCanvasElement>,
             onRatioChange: (pixelatingCanvasContext: WebGL2RenderingContext, resolution: number) => void;
             shaders: { vert: string, frag: string, uniforms: any };
             resolutions: Array<resolution>;
             defaultResolution?: number,
         }) => {
-        const [
-            context,
-            setContext,
-        ] = useState<WebGL2RenderingContext | undefined>(canvasRef.current.getContext('webgl2'));
         const defaultValue = defaultResolution;
         let program: WebGLProgram | null;
+        let context: WebGL2RenderingContext | null | undefined;
         useEffect(() => {
-            if (context) {
-                setContext(context);
+            context = canvasRef?.current?.getContext('webgl2');
+            if (!context) {
+                return;
+            } else {
                 context.canvas.width = resolutions[defaultValue].width;
                 context.canvas.height = resolutions[defaultValue].height;
                 context.viewport(0, 0, context.canvas.width, context.canvas.height);
-                // Функция создания шейдера
-                const getShader = (type: GLenum, shaderCode: string) => {
-                    const shader = context.createShader(type);
-                    if (shader) {
-                        context.shaderSource(shader, shaderCode);
-                        context.compileShader(shader);
-                        if (!context.getShaderParameter(shader, context.COMPILE_STATUS)) {
-                            console.log('Ошибка компиляции шейдера: ' + context.getShaderInfoLog(shader));
-                            context.deleteShader(shader);
-                            return null;
-                        }
-                        return shader;
-                    } else {
-                        return null;
-                    }
-                };
-                const fragmentShader = getShader(context.FRAGMENT_SHADER, frag);
-                const vertexShader = getShader(context.VERTEX_SHADER, vert);
+
+                const fragmentShader = getShader(context, context.FRAGMENT_SHADER, frag);
+                const vertexShader = getShader(context, context.VERTEX_SHADER, vert);
                 // setup GLSL program
                 program = context.createProgram();
                 if (program && vertexShader && fragmentShader) {
@@ -91,14 +96,18 @@ const Pixelating = (
                         context.uniform1f(iScaleHeight, resolutions[defaultValue].height);
 
                         Object.keys(uniforms).forEach((uniformName) => {
+                            // @ts-ignore context!
                             const uniformLocation = context.getUniformLocation(program!, uniformName);
                             if (uniforms[uniformName].type === 'uniform3fv') {
+                                // @ts-ignore context!
                                 context.uniform3fv(uniformLocation, uniforms[uniformName].data);
                             }
                             if (uniforms[uniformName].type === 'uniform3iv') {
+                                // @ts-ignore context!
                                 context.uniform3iv(uniformLocation, uniforms[uniformName].data);
                             }
                             if (uniforms[uniformName].type === 'uniform2f') {
+                                // @ts-ignore context!
                                 context.uniform2f(uniformLocation, uniforms[uniformName].data[0],
                                     uniforms[uniformName].data[1]);
                             }
@@ -128,13 +137,19 @@ const Pixelating = (
                         const render = (time: number) => {
                             // convert to seconds
                             time *= 0.001;
+                            // @ts-ignore context!
                             context.useProgram(program);
+                            // @ts-ignore context!
                             const iTimeLocation = context.getUniformLocation(program!, 'iTime');
+                            // @ts-ignore context!
                             context.uniform1f(iTimeLocation, time);
+                            // @ts-ignore context!
                             context.drawArrays(context.TRIANGLES, 0, 6);
 
                             if (uniforms.iMouse) {
+                                // @ts-ignore context!
                                 const iMouse = context.getUniformLocation(program!, 'iMouse');
+                                // @ts-ignore context!
                                 context.uniform2f(iMouse, uniforms.iMouse.data[0], uniforms.iMouse.data[1]);
                             }
 
