@@ -1,19 +1,16 @@
 'use client'; // Indicates that this component is client-side only
 
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-const Playground= () => {
-    const mountRef = useRef<HTMLDivElement | null>(null);
-    const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-    const animationIdRef = useRef<number | null>(null); // To store the animation frame ID
+const Playground = () => {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const rendererRef = useRef<THREE.WebGLRenderer | null>(null); // Renderer reference
 
     useEffect(() => {
         // Initialize the WebGL renderer if it doesn't already exist
-        if (!rendererRef.current && mountRef.current) {
-            rendererRef.current = new THREE.WebGLRenderer();
-            rendererRef.current.setSize(window.innerWidth, window.innerHeight);
-            mountRef.current.appendChild(rendererRef.current.domElement);
+        if (!rendererRef.current && canvasRef.current) {
+            rendererRef.current = new THREE.WebGLRenderer({canvas: canvasRef.current});
 
             // Basic Three.js scene setup
             const scene = new THREE.Scene();
@@ -33,34 +30,29 @@ const Playground= () => {
             const triangle = new THREE.Mesh(geometry, material);
             scene.add(triangle);
 
-            const animate = () => {
+            // Set up the animation loop using setAnimationLoop
+            rendererRef.current.setAnimationLoop(() => {
                 triangle.rotation.z += 0.01; // Rotate the triangle
                 rendererRef.current?.render(scene, camera);
-                animationIdRef.current = requestAnimationFrame(animate);
-            };
-            animate();
+            });
         }
 
         // Cleanup function to dispose of WebGL resources
         return () => {
             if (rendererRef.current) {
-                // Cancel the animation frame
-                if (animationIdRef.current) {
-                    cancelAnimationFrame(animationIdRef.current);
-                    animationIdRef.current = null;
-                }
-
+                // Stop the animation loop
+                rendererRef.current.setAnimationLoop(null); // This stops the loop
+                console.log('Animation loop stopped');
                 // Dispose of the WebGL renderer
                 rendererRef.current.dispose();
-                if (mountRef.current) {
-                    mountRef.current.removeChild(rendererRef.current.domElement);
-                }
                 rendererRef.current = null;
             }
         };
     }, []); // Empty dependency array to run effect only on mount and unmount
 
-    return <div ref={mountRef} />;
+    return <div>
+        <canvas id="canvas" className={`pixelated`} width={512} height={512} ref={canvasRef}></canvas>
+    </div>;
 };
 
 export default Playground;

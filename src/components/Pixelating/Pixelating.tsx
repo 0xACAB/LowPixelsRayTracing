@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { resolution } from '@/components/interfaces';
 // Функция создания шейдера
 const getShader = (context: WebGL2RenderingContext, type: GLenum, shaderCode: string) => {
@@ -33,6 +33,8 @@ const Pixelating = (
         const defaultValue = defaultResolution;
         let program: WebGLProgram | null;
         let context: WebGL2RenderingContext | null | undefined;
+
+        const animationIdRef = useRef<number | null>(null); // To store the animation frame ID
         useEffect(() => {
             context = canvasRef?.current?.getContext('webgl2');
             if (!context) {
@@ -153,12 +155,23 @@ const Pixelating = (
                                 context.uniform2f(iMouse, uniforms.iMouse.data[0], uniforms.iMouse.data[1]);
                             }
 
-                            requestAnimationFrame(render);
+                            animationIdRef.current = requestAnimationFrame(render);
                         };
                         render(0);
                     }
                 }
+
+                // Cleanup function to dispose of WebGL resources
+                return () => {
+
+                    // Cancel the animation frame
+                    if (animationIdRef.current) {
+                        cancelAnimationFrame(animationIdRef.current);
+                        animationIdRef.current = null;
+                    }
+                };
             }
+
         }, [context]);
         const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
             if (context) {

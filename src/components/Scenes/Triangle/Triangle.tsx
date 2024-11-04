@@ -10,7 +10,7 @@ import Pixelating from '@/components/Pixelating/Pixelating';
 
 const Triangle = () => {
     const statsRef = useRef<HTMLDivElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
 
     const resolutions = [
@@ -23,17 +23,15 @@ const Triangle = () => {
     ];
     let currentResolutionIndex = 0;
     let material: THREE.MeshBasicMaterial;
-    let context: WebGL2RenderingContext | null | undefined;
+    const rendererRef = useRef<THREE.WebGLRenderer | null>(null); // Renderer reference
     useEffect(() => {
-        context = canvasRef?.current?.getContext('webgl2');
-        if (context) {
+        if (!rendererRef.current && canvasRef.current) {
+            const canvas = canvasRef.current as HTMLCanvasElement;
+            rendererRef.current = new THREE.WebGLRenderer({ canvas:canvasRef.current });
             const stats = new Stats();
             if (statsRef.current) {
                 statsRef.current.appendChild(stats.dom);
             }
-
-            const canvas = canvasRef.current as HTMLCanvasElement;
-            const renderer = new THREE.WebGLRenderer({ canvas });
 
             const scene = new THREE.Scene();
             const width = canvas.width;
@@ -95,7 +93,7 @@ const Triangle = () => {
             scene.add(helper);
             scene.add(group);
 
-            renderer.setSize(width, height);
+            rendererRef.current.setSize(width, height);
 
             const pointer = new THREE.Vector2(-999, -999);
             const rayCaster = new THREE.Raycaster();
@@ -151,19 +149,23 @@ const Triangle = () => {
                     material.map.needsUpdate = true;
                 }
 
-                renderer.render(scene, camera);
+                rendererRef.current?.render(scene, camera);
                 stats.update();
             };
-            renderer.setAnimationLoop(animate);
-
-            return () => {
-                // this side effect will run before the component is unmounted
-                context?.getExtension('WEBGL_lose_context')?.loseContext();
-            };
-        } else {
-            return
+            rendererRef.current.setAnimationLoop(animate);
         }
 
+        // Cleanup function to dispose of WebGL resources
+        return () => {
+            if (rendererRef.current) {
+                // Stop the animation loop
+                rendererRef.current.setAnimationLoop(null); // This stops the loop
+                console.log('Animation loop stopped');
+                // Dispose of the WebGL renderer
+                rendererRef.current.dispose();
+                rendererRef.current = null;
+            }
+        };
     }, []);
 
     const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, inputValue: number) => {
