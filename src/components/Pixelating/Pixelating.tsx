@@ -33,8 +33,6 @@ const Pixelating = (
         const defaultValue = defaultResolution;
         let program: WebGLProgram | null;
         let context: WebGL2RenderingContext | null | undefined;
-
-        const animationIdRef = useRef<number | null>(null); // To store the animation frame ID
         useEffect(() => {
             context = canvasRef?.current?.getContext('webgl2');
             if (!context) {
@@ -48,6 +46,7 @@ const Pixelating = (
                 const vertexShader = getShader(context, context.VERTEX_SHADER, vert);
                 // setup GLSL program
                 program = context.createProgram();
+                let animationId: number;
                 if (program && vertexShader && fragmentShader) {
                     context.attachShader(program, vertexShader);
                     context.attachShader(program, fragmentShader);
@@ -155,7 +154,7 @@ const Pixelating = (
                                 context.uniform2f(iMouse, uniforms.iMouse.data[0], uniforms.iMouse.data[1]);
                             }
 
-                            animationIdRef.current = requestAnimationFrame(render);
+                            animationId = requestAnimationFrame(render);
                         };
                         render(0);
                     }
@@ -163,11 +162,9 @@ const Pixelating = (
 
                 // Cleanup function to dispose of WebGL resources
                 return () => {
-
                     // Cancel the animation frame
-                    if (animationIdRef.current) {
-                        cancelAnimationFrame(animationIdRef.current);
-                        animationIdRef.current = null;
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
                     }
                 };
             }
