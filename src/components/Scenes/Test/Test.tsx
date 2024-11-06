@@ -23,20 +23,18 @@ const Test = () => {
     ];
     let currentResolutionIndex = 0;
     let material: THREE.MeshBasicMaterial;
-    let context: WebGL2RenderingContext | null | undefined;
     useEffect(() => {
-        context = canvasRef?.current?.getContext('webgl2');
-        if (!context) {
-            return;
-        } else {
+        if (canvasRef.current) {
+            const canvas = canvasRef.current;
+            const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ canvas });
             const stats = new Stats();
             if (statsRef.current) {
                 statsRef.current.appendChild(stats.dom);
             }
 
             const scene = new THREE.Scene();
-            const width = context.canvas.width;
-            const height = context.canvas.height;
+            const width = canvas.width;
+            const height = canvas.height;
             const camera = new THREE.PerspectiveCamera(
                 90,
                 width / height,
@@ -46,8 +44,6 @@ const Test = () => {
 
             const cameraPerspective = new THREE.PerspectiveCamera(90, 1 / 1, 1, 1000);
             const helper = new THREE.CameraHelper(cameraPerspective);
-
-            const renderer = new THREE.WebGLRenderer({ canvas: context.canvas });
 
             const geometry = new THREE.PlaneGeometry(2.0, 2.0);
             material = new THREE.MeshBasicMaterial();
@@ -90,16 +86,13 @@ const Test = () => {
 
             const pointer = new THREE.Vector2(-999, -999);
             const rayCaster = new THREE.Raycaster();
-            const canvas = context.canvas as HTMLCanvasElement;
 
             const pointerDown = (event: MouseEvent) => {
                 // calculate pointer position in normalized device coordinates
                 // (-1 to +1) for both components
                 const rect = canvas.getBoundingClientRect();
-                // @ts-ignore context!
-                pointer.x = ((event.clientX - rect.left) / context.canvas.width) * 2 - 1;
-                // @ts-ignore context!
-                pointer.y = -((event.clientY - rect.top) / context.canvas.height) * 2 + 1;
+                pointer.x = ((event.clientX - rect.left) / canvas.width) * 2 - 1;
+                pointer.y = -((event.clientY - rect.top) / canvas.height) * 2 + 1;
                 rayCaster.setFromCamera(pointer, camera);
                 // calculate objects intersecting the picking ray
                 const intersects = rayCaster.intersectObjects([plane], false);
@@ -148,15 +141,14 @@ const Test = () => {
                 renderer.render(scene, camera);
                 stats.update();
             };
-
             renderer.setAnimationLoop(animate);
+            // Cleanup function to dispose of WebGL resources
+            return () => {
+                // Stop the animation loop
+                renderer.setAnimationLoop(null);
+            };
         }
-
-        return () => {
-            // this side effect will run before the component is unmounted
-            context?.getExtension('WEBGL_lose_context')?.loseContext();
-        };
-    }, [context]);
+    }, []);
 
     const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, inputValue: number) => {
         if (material) {

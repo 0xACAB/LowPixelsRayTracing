@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { resolution } from '@/components/interfaces';
 // Функция создания шейдера
 const getShader = (context: WebGL2RenderingContext, type: GLenum, shaderCode: string) => {
@@ -34,10 +34,8 @@ const Pixelating = (
         let program: WebGLProgram | null;
         let context: WebGL2RenderingContext | null | undefined;
         useEffect(() => {
-            context = canvasRef?.current?.getContext('webgl2');
-            if (!context) {
-                return;
-            } else {
+            context = canvasRef.current?.getContext('webgl2');
+            if (context) {
                 context.canvas.width = resolutions[defaultValue].width;
                 context.canvas.height = resolutions[defaultValue].height;
                 context.viewport(0, 0, context.canvas.width, context.canvas.height);
@@ -168,7 +166,6 @@ const Pixelating = (
                     }
                 };
             }
-
         }, [context]);
         const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
             if (context) {

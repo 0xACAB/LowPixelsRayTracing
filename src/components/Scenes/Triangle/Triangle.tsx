@@ -10,9 +10,8 @@ import Pixelating from '@/components/Pixelating/Pixelating';
 
 const Triangle = () => {
     const statsRef = useRef<HTMLDivElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
-
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null)
     const resolutions = [
         { width: 16, height: 16 },
         { width: 32, height: 32 },
@@ -26,7 +25,7 @@ const Triangle = () => {
     useEffect(() => {
         if (canvasRef.current) {
             const canvas = canvasRef.current;
-            let renderer: THREE.WebGLRenderer | null = new THREE.WebGLRenderer({ canvas });
+            const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ canvas });
             const stats = new Stats();
             if (statsRef.current) {
                 statsRef.current.appendChild(stats.dom);
@@ -148,23 +147,16 @@ const Triangle = () => {
                     material.map.needsUpdate = true;
                 }
 
-                renderer?.render(scene, camera);
+                renderer.render(scene, camera);
                 stats.update();
             };
             renderer.setAnimationLoop(animate);
             // Cleanup function to dispose of WebGL resources
             return () => {
-                if (renderer) {
-                    // Stop the animation loop
-                    renderer.setAnimationLoop(null); // This stops the loop
-                    console.log('Animation loop stopped');
-                    // Dispose of the WebGL renderer
-                    renderer.state.reset();
-                    renderer = null;
-                }
+                // Stop the animation loop
+                renderer.setAnimationLoop(null);
             };
         }
-
     }, []);
 
     const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, inputValue: number) => {
