@@ -2,22 +2,22 @@ import React from 'react';
 import Link from 'next/link';
 
 const Page = () => {
-    return (
-        <>
+	return (
+		<>
 
-            <div className={`flex items-center flex-col`}>{'Листки НМУ'}</div>
-            <div className={`flex justify-left`}>
-                <div>
-                    <Link className={`m-1`} href="/math/algebra">Алгебра</Link>
-                </div>
-                <div>
-                    <Link className={`m-1`} href="/math/analysis">Анализ</Link>
-                </div>
-                <div>
-                    <Link className={`m-1`} href="/math/geometry">Геометрия</Link>
-                </div>
-            </div>
-        </>
-    );
+			<div className={`flex items-center flex-col`}>{'Листки НМУ'}</div>
+			<div className={`flex justify-left`}>
+				<div>
+					<Link className={`m-1`} href="/math/algebra">Алгебра</Link>
+				</div>
+				<div>
+					<Link className={`m-1`} href="/math/analysis">Анализ</Link>
+				</div>
+				<div>
+					<Link className={`m-1`} href="/math/geometry">Геометрия</Link>
+				</div>
+			</div>
+		</>
+	);
 };
 export default Page;
