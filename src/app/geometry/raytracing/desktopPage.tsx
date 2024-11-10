@@ -1,14 +1,15 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import Pixelating from '@/components/Pixelating/Pixelating';
+import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
 import vert from '@/components/Scenes/Test/shaders/vert.glsl';
 import frag from '@/components/Scenes/Test/shaders/frag.glsl';
 import uniforms from '@/components/Scenes/Test/uniforms';
 import Link from 'next/link';
+import Slider from '@/components/Pixelating/Slider';
+import * as THREE from 'three';
 
 const DesktopPage = () => {
     const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
-    const [isMounted, setIsMounted] = useState(false);
 
     const resolutions = [
         { width: 16, height: 16 },
@@ -19,9 +20,42 @@ const DesktopPage = () => {
         { width: 512, height: 512 },
     ];
     let currentResolutionIndex = 0;
+
+    let pixelating: IPixelating | undefined;
     useEffect(() => {
-        setIsMounted(true);
+        let animationId:number;
+        if (pixelatingCanvasRef.current) {
+            const context = pixelatingCanvasRef.current.getContext('webgl2');
+            pixelating = Pixelating({
+                context,
+                shaders: { vert, frag, uniforms },
+                resolutions,
+                defaultResolution: currentResolutionIndex,
+            });
+
+            const render = (time: number) => {
+                // convert to seconds
+                time *= 0.001;
+                if (pixelating) {
+                    pixelating.render(time);
+                    animationId = requestAnimationFrame(render);
+                }
+            };
+            render(0);
+            // Cleanup function to dispose of WebGL resources
+            return () => {
+                // Cancel the animation frame
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+            };
+        }
     });
+    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (pixelating) {
+            pixelating.onChange(event);
+        }
+    };
     return (
         <div className={`bg-background grid gap-y-0 overflow-hidden`}>
             <div className={`flex items-center flex-col`}><Link href="/">Назад к меню</Link></div>
@@ -36,15 +70,7 @@ const DesktopPage = () => {
                                         height={512}
                                         ref={pixelatingCanvasRef}
                                 ></canvas>
-                                {
-                                    isMounted && <Pixelating
-                                        canvasRef={pixelatingCanvasRef}
-                                        resolutions={resolutions}
-                                        defaultResolution={currentResolutionIndex}
-                                        onRatioChange={() => {}}
-                                        shaders={{ vert, frag, uniforms }}
-                                    />
-                                }
+                                <Slider onChange={onChange} resolutions={resolutions} defaultResolution={currentResolutionIndex} />
                             </div>
                         </div>
                     </main>

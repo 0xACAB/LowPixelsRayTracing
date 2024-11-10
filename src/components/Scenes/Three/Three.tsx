@@ -5,7 +5,8 @@ import * as THREE from 'three';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import Pixelating from '@/components/Pixelating/Pixelating';
+import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
+import Slider from '@/components/Pixelating/Slider';
 
 const Scene = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,17 +19,18 @@ const Scene = () => {
         { width: 256, height: 256 },
         { width: 512, height: 512 },
     ];
-    let currentResolutionIndex = 0;
+    let currentResolutionIndex = 1;
+
     let material: THREE.MeshBasicMaterial;
-    let context: WebGL2RenderingContext | null | undefined;
+    let pixelating: IPixelating | undefined;
     useEffect(() => {
-        context = canvasRef?.current?.getContext('webgl2');
-        if (!context) {
-            return;
-        } else {
+        if (canvasRef.current) {
+            const canvas = canvasRef.current;
+            const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ canvas });
+
             const scene = new THREE.Scene();
-            const width = context.canvas.width;
-            const height = context.canvas.height;
+            const width = canvas.width;
+            const height = canvas.height;
             const camera = new THREE.PerspectiveCamera(
                 90,
                 width / height,
@@ -36,16 +38,20 @@ const Scene = () => {
                 1000,
             );
 
-            const renderer = new THREE.WebGLRenderer({ canvas: context.canvas });
-
             const geometry = new THREE.PlaneGeometry(2.0, 2.0);
             material = new THREE.MeshBasicMaterial();
-
             // set canvas as material.map (this could be done to any map, bump, displacement etc.)
             if (pixelatingCanvasRef.current) {
+                const context = pixelatingCanvasRef.current.getContext('webgl2');
+                pixelating = Pixelating({
+                    context,
+                    shaders: { vert, frag, uniforms },
+                    resolutions,
+                    defaultResolution: currentResolutionIndex,
+                });
+
                 material.map = new THREE.CanvasTexture(pixelatingCanvasRef.current);
                 material.map.magFilter = THREE.NearestFilter;
-                material.map.minFilter = THREE.LinearMipMapLinearFilter;
             }
 
             const plane = new THREE.Mesh(geometry, material);
@@ -55,16 +61,13 @@ const Scene = () => {
 
             const pointer = new THREE.Vector2(-999, -999);
             const rayCaster = new THREE.Raycaster();
-            const canvas = context.canvas as HTMLCanvasElement;
 
             const pointerDown = (event: MouseEvent) => {
                 // calculate pointer position in normalized device coordinates
                 // (-1 to +1) for both components
                 const rect = canvas.getBoundingClientRect();
-                // @ts-ignore context!
-                pointer.x = ((event.clientX - rect.left) / context.canvas.width) * 2 - 1;
-                // @ts-ignore context!
-                pointer.y = -((event.clientY - rect.top) / context.canvas.height) * 2 + 1;
+                pointer.x = ((event.clientX - rect.left) / canvas.width) * 2 - 1;
+                pointer.y = -((event.clientY - rect.top) / canvas.height) * 2 + 1;
                 rayCaster.setFromCamera(pointer, camera);
                 // calculate objects intersecting the picking ray
                 const intersects = rayCaster.intersectObjects([plane], false);
@@ -81,29 +84,32 @@ const Scene = () => {
             canvas.addEventListener('pointerdown', pointerDown);
 
             camera.position.z = 2.0;
-            const animate = () => {
-                if (material.map) {
+            const animate = (time: number) => {
+                //convert to seconds
+                time *= 0.001;
+                if (pixelating && material.map) {
                     material.map.needsUpdate = true;
+                    pixelating.render(time);
                 }
                 renderer.render(scene, camera);
             };
-
             renderer.setAnimationLoop(animate);
+            // Cleanup function to dispose of WebGL resources
+            return () => {
+                // Stop the animation loop
+                renderer.setAnimationLoop(null);
+            };
         }
+    }, []);
 
-        return () => {
-            // this side effect will run before the component is unmounted
-            context?.getExtension("WEBGL_lose_context")?.loseContext();
-        }
-    }, [context]);
-
-    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, inputValue: number) => {
-        if (material) {
-            currentResolutionIndex = inputValue;
-            material.map = new THREE.CanvasTexture(pixelatingCanvasContext.canvas);
+    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (material && pixelating) {
+            currentResolutionIndex = event.target.valueAsNumber;
+            material.map = new THREE.CanvasTexture(pixelating.context.canvas);
             material.map.magFilter = THREE.NearestFilter;
-            material.map.minFilter = THREE.LinearMipMapLinearFilter;
             uniforms.iMouse.data = [-999, -999];
+
+            pixelating.onChange(event);
         }
     };
 
@@ -111,13 +117,7 @@ const Scene = () => {
         <>
             <canvas id="canvas" className={`pixelated`} width={512} height={512} ref={canvasRef}></canvas>
             <canvas id="canvas" className={`hidden`} ref={pixelatingCanvasRef}></canvas>
-            <Pixelating
-                canvasRef={pixelatingCanvasRef}
-                onRatioChange={onRatioChange}
-                shaders={{ vert, frag, uniforms }}
-                resolutions={resolutions}
-                defaultResolution={currentResolutionIndex}
-            />
+            <Slider onChange={onChange} resolutions={resolutions} defaultResolution={currentResolutionIndex} />
         </>
     );
 };

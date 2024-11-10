@@ -6,7 +6,7 @@ import Stats from 'three/addons/libs/stats.module.js';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import Pixelating from '@/components/Pixelating/Pixelating';
+import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
 import Slider from '@/components/Pixelating/Slider';
 
 const Triangle = () => {
@@ -22,12 +22,9 @@ const Triangle = () => {
         { width: 512, height: 512 },
     ];
     let currentResolutionIndex = 1;
+
     let material: THREE.MeshBasicMaterial;
-    let pixelating: {
-        context: WebGL2RenderingContext;
-        render: (time: number) => void;
-        onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    } | undefined;
+    let pixelating: IPixelating | undefined;
     useEffect(() => {
         if (canvasRef.current) {
             const canvas = canvasRef.current;
@@ -46,8 +43,8 @@ const Triangle = () => {
                 0.1,
                 1000,
             );
-
-            const cameraPerspective = new THREE.PerspectiveCamera(90, 1 / 1, 1, 1000);
+            //aspect ratio should be 1:1 now
+            const cameraPerspective = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
             const helper = new THREE.CameraHelper(cameraPerspective);
 
             const geometry = new THREE.PlaneGeometry(2.0, 2.0);
@@ -150,17 +147,16 @@ const Triangle = () => {
             camera.position.z = 2.0;
             //group.rotation.y = Math.PI / 4;
             const animate = (time: number) => {
+                //convert to seconds
+                time *= 0.001;
                 group.rotation.y -= 0.005;
                 cameraPerspective.position.x = -Math.cos(group.rotation.y + Math.PI / 2);
                 cameraPerspective.position.z = Math.sin(group.rotation.y + Math.PI / 2);
                 cameraPerspective.lookAt(plane.position);
                 cameraPerspective.updateProjectionMatrix();
 
-
-                if (pixelating) {
-                    if (material.map) {
-                        material.map.needsUpdate = true;
-                    }
+                if (pixelating && material.map) {
+                    material.map.needsUpdate = true;
                     pixelating.render(time);
                 }
                 renderer.render(scene, camera);
@@ -177,7 +173,6 @@ const Triangle = () => {
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (material && pixelating) {
-
             currentResolutionIndex = event.target.valueAsNumber;
             material.map = new THREE.CanvasTexture(pixelating.context.canvas);
             material.map.magFilter = THREE.NearestFilter;

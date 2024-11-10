@@ -121,8 +121,6 @@ const Pixelating = (
                 context.bindFramebuffer(context.FRAMEBUFFER, null);
                 context.bindTexture(context.TEXTURE_2D, targetTexture);
                 const render = (time: number) => {
-                    // convert to seconds
-                    time *= 0.001;
                     context.useProgram(program);
                     const iTimeLocation = context.getUniformLocation(program, 'iTime');
                     context.uniform1f(iTimeLocation, time);
@@ -156,4 +154,11 @@ const Pixelating = (
     }
 };
 
-export default Pixelating;
+export interface IPixelating {
+    context: WebGL2RenderingContext;
+    render: (time: number) => void;
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+export { Pixelating };
+

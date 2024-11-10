@@ -6,13 +6,13 @@ import Stats from 'three/addons/libs/stats.module.js';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import Pixelating from '@/components/Pixelating/Pixelating';
+import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
+import Slider from '@/components/Pixelating/Slider';
 
 const Test = () => {
     const statsRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
-
     const resolutions = [
         { width: 16, height: 16 },
         { width: 32, height: 32 },
@@ -21,8 +21,10 @@ const Test = () => {
         { width: 256, height: 256 },
         { width: 512, height: 512 },
     ];
-    let currentResolutionIndex = 0;
+    let currentResolutionIndex = 1;
+
     let material: THREE.MeshBasicMaterial;
+    let pixelating: IPixelating | undefined;
     useEffect(() => {
         if (canvasRef.current) {
             const canvas = canvasRef.current;
@@ -41,17 +43,24 @@ const Test = () => {
                 0.1,
                 1000,
             );
-
-            const cameraPerspective = new THREE.PerspectiveCamera(90, 1 / 1, 1, 1000);
+            //aspect ratio should be 1:1 now
+            const cameraPerspective = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
             const helper = new THREE.CameraHelper(cameraPerspective);
 
             const geometry = new THREE.PlaneGeometry(2.0, 2.0);
             material = new THREE.MeshBasicMaterial();
             // set canvas as material.map (this could be done to any map, bump, displacement etc.)
             if (pixelatingCanvasRef.current) {
+                const context = pixelatingCanvasRef.current.getContext('webgl2');
+                pixelating = Pixelating({
+                    context,
+                    shaders: { vert, frag, uniforms },
+                    resolutions,
+                    defaultResolution: currentResolutionIndex,
+                });
+
                 material.map = new THREE.CanvasTexture(pixelatingCanvasRef.current);
                 material.map.magFilter = THREE.NearestFilter;
-                material.map.minFilter = THREE.LinearMipMapLinearFilter;
                 material.side = THREE.DoubleSide;
                 material.transparent = true;
                 material.opacity = 0.4;
@@ -127,17 +136,19 @@ const Test = () => {
 
             camera.position.z = 2.0;
             //group.rotation.y = Math.PI/4;
-            const animate = () => {
+            const animate = (time: number) => {
+                //convert to seconds
+                time *= 0.001;
                 group.rotation.y -= 0.005;
                 cameraPerspective.position.x = -Math.cos(group.rotation.y + Math.PI / 2);
                 cameraPerspective.position.z = Math.sin(group.rotation.y + Math.PI / 2);
                 cameraPerspective.lookAt(plane.position);
                 cameraPerspective.updateProjectionMatrix();
 
-                if (material.map) {
+                if (pixelating && material.map) {
                     material.map.needsUpdate = true;
+                    pixelating.render(time);
                 }
-
                 renderer.render(scene, camera);
                 stats.update();
             };
@@ -150,28 +161,22 @@ const Test = () => {
         }
     }, []);
 
-    const onRatioChange = (pixelatingCanvasContext: WebGL2RenderingContext, inputValue: number) => {
-        if (material) {
-            currentResolutionIndex = inputValue;
-            material.map = new THREE.CanvasTexture(pixelatingCanvasContext.canvas);
+    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (material && pixelating) {
+            currentResolutionIndex = event.target.valueAsNumber;
+            material.map = new THREE.CanvasTexture(pixelating.context.canvas);
             material.map.magFilter = THREE.NearestFilter;
-            material.map.minFilter = THREE.LinearMipMapLinearFilter;
             uniforms.iMouse.data = [-999, -999];
+
+            pixelating.onChange(event);
         }
     };
-
     return (
         <>
             <div ref={statsRef}></div>
             <canvas id="canvas" className={`pixelated`} width={512} height={512} ref={canvasRef}></canvas>
             <canvas id="canvas" className={`hidden`} ref={pixelatingCanvasRef}></canvas>
-            <Pixelating
-                canvasRef={pixelatingCanvasRef}
-                onRatioChange={onRatioChange}
-                shaders={{ vert, frag, uniforms }}
-                resolutions={resolutions}
-                defaultResolution={currentResolutionIndex}
-            />
+            <Slider onChange={onChange} resolutions={resolutions} defaultResolution={currentResolutionIndex} />
         </>
     );
 };
