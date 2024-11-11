@@ -5,8 +5,20 @@
   "about": {
     "sections": [
       {
+        "name": "Тестовая сцена",
+        "href": "/geometry/playground"
+      },
+      {
+        "name": "Сцена со сферой",
+        "href": "/geometry/sphere"
+      },
+      {
+        "name": "Сцена с треугольником",
+        "href": "/geometry/triangle"
+      },
+      {
         "name": "Нативная сцена",
-        "href": "/geometry/raytracing"
+        "href": "/geometry/native"
       },
       {
         "name": "Основная сцена",
@@ -15,14 +27,6 @@
       {
         "name": "Расширенная сцена",
         "href": "/geometry/template"
-      },
-      {
-        "name": "Сцена с треугольником",
-        "href": "/geometry/triangle"
-      },
-      {
-        "name": "Тестовая сцена",
-        "href": "/geometry/playground"
       }
     ],
     "socialMedia": {

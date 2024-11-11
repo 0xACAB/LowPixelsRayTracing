@@ -3,13 +3,13 @@ import React from 'react';
 import config from '../config/index.json';
 import Link from 'next/link';
 
-const About = (() => {
+const About = () => {
 	const { socialMedia, sections } = config.about;
 
 	return (
 		<div id="about" className="mx-auto container xl:px-20 lg:px-12 sm:px-6 px-4">
 			<div className="flex flex-col items-center justify-center">
-				<div className="flex flex-wrap gap-x-4 items-center justify-center mt-4">
+				<div className="flex flex-col flex-wrap gap-x-4 items-left justify-center mt-4">
 					{
 						sections.map((section, index) => (
 							<div key={index}>
@@ -79,5 +79,5 @@ const About = (() => {
 			</div>
 		</div>
 	);
-});
+};
 export default About;

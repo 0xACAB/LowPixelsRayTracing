@@ -95,20 +95,16 @@ void init_scene() {
     )
     );
 }
+
 Camera camera = Camera(vec3(0.0, 0.0, 1.0));
-
-
 vec3 rayTrace() {
     Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), vec3(0.0, 0.0, 1.0));
 
-    camera.eye.x = 0.0;//sin(iTime)*2.2;
-    //camera.eye.y = cos(iTime)*1.2;
-    //camera.eye.z = -25.0+10.5*sin(iTime);
+    camera.eye.x = 0.0;
     Ray ray = initRay(pixel, camera);
     Intersection I = intersection();
 
     float ray_length = FARAWAY;
-    //Только если прошли ограничение считаем пересечения с треугольником
     vec3 tuv=triIntersect(ray, scene.triangle);
     float t2 = tuv.x;
     if (t2>0.0) {
