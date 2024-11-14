@@ -104,11 +104,7 @@ const Sphere = () => {
 						Math.floor((uv.x - 0.5) * width),
 						Math.floor((uv.y - 0.5) * height),
 					];
-					/*pointsL1[1] = new THREE.Vector3(
-						(uv.x - 0.5) * plane.geometry.parameters.width,
-						(uv.y - 0.5) * plane.geometry.parameters.height,
-						0,
-					);*/
+
 					const xFloored = Math.floor((uv.x - 0.5) * width) / width;
 					const yFloored = Math.floor((uv.y - 0.5) * height) / height;
 					const xHalfPixel = 1 / width * 0.5;
@@ -119,7 +115,6 @@ const Sphere = () => {
 						3 * (yFloored + yHalfPixel) * plane.geometry.parameters.height,
 						-2,
 					);
-					//lineGeometry.setFromPoints(pointsL1);
 					lineGeometry2.setFromPoints(pointsL2);
 				}
 
@@ -145,9 +140,8 @@ const Sphere = () => {
 				stats.update();
 			};
 			renderer.setAnimationLoop(animate);
-			// Cleanup function to dispose of WebGL resources
+
 			return () => {
-				// Stop the animation loop
 				renderer.setAnimationLoop(null);
 			};
 		}

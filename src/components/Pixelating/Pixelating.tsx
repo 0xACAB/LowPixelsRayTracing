@@ -85,30 +85,31 @@ const Pixelating = (
 				context.uniform1f(iScaleWidth, resolutions[defaultResolution].width);
 				context.uniform1f(iScaleHeight, resolutions[defaultResolution].height);
 
-				Object.keys(uniforms).forEach((uniformName) => {
-					const uniformLocation = context.getUniformLocation(program, uniformName);
-					if (uniforms[uniformName].type === 'uniform3fv') {
-						context.uniform3fv(uniformLocation, uniforms[uniformName].data);
-					}
-					if (uniforms[uniformName].type === 'uniform3iv') {
-						context.uniform3iv(uniformLocation, uniforms[uniformName].data);
-					}
-					if (uniforms[uniformName].type === 'uniform2f') {
-						context.uniform2f(uniformLocation, uniforms[uniformName].data[0],
-							uniforms[uniformName].data[1]);
-					}
-				});
+				const recursiveSetUniform = (prefix: string | undefined, subUniforms: any) => {
+					Object.keys(subUniforms).forEach((uniformName) => {
+						const uniform = subUniforms[uniformName];
+						if (uniform.type !== 'struct') {
+							const uniform = subUniforms[uniformName];
+							const uniformLocation =
+								context.getUniformLocation(program, prefix ? prefix + uniformName : uniformName);
+							console.log(prefix ? prefix + uniformName : uniformName);
+							const setUniformFunction =
+								(context[uniform.type as keyof typeof context] as any).bind(context);
+							setUniformFunction(uniformLocation, uniform.data);
+						} else {
+
+							const newPrefix = prefix ? prefix + uniformName + '.' : uniformName + '.';
+							recursiveSetUniform(newPrefix, subUniforms[uniformName].data);
+						}
+					});
+				};
+				recursiveSetUniform(undefined, uniforms);
 				// Create a texture to render to
 				const targetTexture = context.createTexture();
 				context.bindTexture(context.TEXTURE_2D, targetTexture);
-				context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MIN_FILTER, context.NEAREST);
-				context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MAG_FILTER, context.NEAREST);
-				context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE);
-				context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_T, context.CLAMP_TO_EDGE);
 
 				// Create and bind the framebuffer
-				const fb = context.createFramebuffer();
-				context.bindFramebuffer(context.FRAMEBUFFER, fb);
+				context.bindFramebuffer(context.FRAMEBUFFER, context.createFramebuffer());
 				context.framebufferTexture2D(
 					context.FRAMEBUFFER,
 					context.COLOR_ATTACHMENT0,
@@ -128,7 +129,7 @@ const Pixelating = (
 
 					if (uniforms.iMouse) {
 						const iMouse = context.getUniformLocation(program, 'iMouse');
-						context.uniform2f(iMouse, uniforms.iMouse.data[0], uniforms.iMouse.data[1]);
+						context.uniform2fv(iMouse, uniforms.iMouse.data);
 					}
 				};
 

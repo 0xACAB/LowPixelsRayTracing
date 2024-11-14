@@ -27,7 +27,7 @@ const uniforms = {
 		],
 	},
 	iMouse: {
-		type: 'uniform2f',
+		type: 'uniform2fv',
 		data: [-999.0, -999.0],
 	},
 };

@@ -33,7 +33,7 @@ struct Sphere {
     float radius;
     Material material;
 };
-
+uniform Sphere sphere;
 struct Scene {
     Sphere spheres[2];
 };
@@ -94,7 +94,7 @@ float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
 Scene scene;
 void init_scene() {
     Sphere scene_spheres[2] = Sphere[2](
-    Sphere(vec3(0.0, 0.0, 0.5), 0.5, diffuse(vec3(0.6))),
+    sphere,
     Sphere(vec3(2.0*cos(iTime), 2.0*sin(iTime), 0.0), 0.05, light(vec3(1.0, 1.0, 1.0)))
     );
     scene = Scene(scene_spheres);
