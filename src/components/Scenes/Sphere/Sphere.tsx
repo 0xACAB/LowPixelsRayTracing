@@ -68,6 +68,18 @@ const Sphere = () => {
 
 			const plane = new THREE.Mesh(geometry, material);
 
+			const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+			const sphereMaterial = new THREE.MeshLambertMaterial({ color: 0xaaaaaa });
+			const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+			// light
+			const light = new THREE.DirectionalLight(0xffffff, 3);
+			light.position.set(2, 2, 1);
+
+			sphere.position.x = uniforms.sphere.data.position.data[0];
+			sphere.position.y = uniforms.sphere.data.position.data[1];
+			sphere.position.z = uniforms.sphere.data.position.data[2];
+
 			const lineMaterial2 = new THREE.LineBasicMaterial({ color: 0x00FF00 });
 			const lineGeometry2 = new THREE.BufferGeometry();
 			const line2 = new THREE.Line(lineGeometry2, lineMaterial2);
@@ -78,10 +90,13 @@ const Sphere = () => {
 
 			const group = new THREE.Group();
 			group.add(plane);
+			group.add(sphere);
 			group.add(line2);
 
-			scene.add(helper);
+			group.add(light);
+
 			scene.add(group);
+			scene.add(helper);
 
 			renderer.setSize(width, height);
 
@@ -127,6 +142,7 @@ const Sphere = () => {
 				//convert to seconds
 				time *= 0.001;
 				group.rotation.y -= 0.005;
+
 				cameraPerspective.position.x = -Math.cos(group.rotation.y + Math.PI / 2);
 				cameraPerspective.position.z = Math.sin(group.rotation.y + Math.PI / 2);
 				cameraPerspective.lookAt(plane.position);
@@ -134,7 +150,17 @@ const Sphere = () => {
 
 				if (pixelating && material.map) {
 					material.map.needsUpdate = true;
-					pixelating.render(time);
+					pixelating.render(time, (context: any, program: any) => {
+						uniforms.lightSphere.data.position.data[0] = 2.0 * Math.cos(time);
+						uniforms.lightSphere.data.position.data[1] = 2.0 * Math.sin(time);
+						light.position.set(
+							uniforms.lightSphere.data.position.data[0],
+							uniforms.lightSphere.data.position.data[1],
+							0.0,
+						);
+						const lightSpherePosition = context.getUniformLocation(program, 'lightSphere.position');
+						context.uniform3fv(lightSpherePosition, uniforms.lightSphere.data.position.data);
+					});
 				}
 				renderer.render(scene, camera);
 				stats.update();

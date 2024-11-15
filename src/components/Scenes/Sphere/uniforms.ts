@@ -4,7 +4,7 @@ const uniforms = {
 		data: {
 			position: {
 				type: 'uniform3fv',
-				data: [0.0, 0.0, 0.5],
+				data: [0.0, 0.0, -1.0],
 			},
 			radius: {
 				type: 'uniform1f',
@@ -20,6 +20,32 @@ const uniforms = {
 					Ke: {
 						type: 'uniform3fv',
 						data: [0.0, 0.0, 0.0],
+					},
+				}
+			}
+		}
+	},
+	lightSphere: {
+		type: 'struct',
+		data: {
+			position: {
+				type: 'uniform3fv',
+				data: [2.0, 2.0, 0.0],
+			},
+			radius: {
+				type: 'uniform1f',
+				data: 0.05,
+			},
+			material: {
+				type: 'struct',
+				data: {
+					Kd: {
+						type: 'uniform3fv',
+						data: [0.0, 0.0, 0.0],
+					},
+					Ke: {
+						type: 'uniform3fv',
+						data: [1.0, 1.0, 1.0],
 					},
 				}
 			}

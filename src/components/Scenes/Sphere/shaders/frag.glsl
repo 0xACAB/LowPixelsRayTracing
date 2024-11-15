@@ -34,6 +34,7 @@ struct Sphere {
     Material material;
 };
 uniform Sphere sphere;
+uniform Sphere lightSphere;
 struct Scene {
     Sphere spheres[2];
 };
@@ -95,11 +96,11 @@ Scene scene;
 void init_scene() {
     Sphere scene_spheres[2] = Sphere[2](
     sphere,
-    Sphere(vec3(2.0*cos(iTime), 2.0*sin(iTime), 0.0), 0.05, light(vec3(1.0, 1.0, 1.0)))
+    lightSphere/*Sphere(vec3(2.0*cos(iTime), 2.0*sin(iTime), 0.0), 0.05, light(vec3(1.0, 1.0, 1.0)))*/
     );
     scene = Scene(scene_spheres);
 }
-Camera camera = Camera(vec3(0.0, 0.0, -1.0));
+Camera camera = Camera(vec3(0.0, 0.0, 1.0));
 
 vec3 rayTrace() {
     Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), vec3(0.0, 0.0, 1.0));

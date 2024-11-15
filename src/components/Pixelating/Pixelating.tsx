@@ -92,7 +92,6 @@ const Pixelating = (
 							const uniform = subUniforms[uniformName];
 							const uniformLocation =
 								context.getUniformLocation(program, prefix ? prefix + uniformName : uniformName);
-							console.log(prefix ? prefix + uniformName : uniformName);
 							const setUniformFunction =
 								(context[uniform.type as keyof typeof context] as any).bind(context);
 							setUniformFunction(uniformLocation, uniform.data);
@@ -121,7 +120,7 @@ const Pixelating = (
 				// render to the canvas
 				context.bindFramebuffer(context.FRAMEBUFFER, null);
 				context.bindTexture(context.TEXTURE_2D, targetTexture);
-				const render = (time: number) => {
+				const render = (time: number, callback?:any) => {
 					context.useProgram(program);
 					const iTimeLocation = context.getUniformLocation(program, 'iTime');
 					context.uniform1f(iTimeLocation, time);
@@ -130,6 +129,9 @@ const Pixelating = (
 					if (uniforms.iMouse) {
 						const iMouse = context.getUniformLocation(program, 'iMouse');
 						context.uniform2fv(iMouse, uniforms.iMouse.data);
+					}
+					if (callback){
+						callback(context,program);
 					}
 				};
 
@@ -157,7 +159,7 @@ const Pixelating = (
 
 export interface IPixelating {
 	context: WebGL2RenderingContext;
-	render: (time: number) => void;
+	render: (time: number,callback?: any) => void;
 	onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
