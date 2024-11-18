@@ -1,17 +1,17 @@
 import React from 'react';
-import ThreeScene from '@/components/Scenes/Three/Three';
+import Triangle from '@/components/Scenes/RayCasting/Triangle/Triangle';
 import Link from 'next/link';
 
-const DesktopPage = () => {
+function DesktopPage() {
 	return (
 		<div className={`bg-background grid gap-y-0 overflow-hidden`}>
 			<div className={`flex items-center flex-col`}><Link href="/">Назад к меню</Link></div>
 			<div className={`relative bg-background flex items-center flex-col`}>
 				<div className={`max-w-7xl mx-auto`}>
-					<main className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8`}>
+					<main className={`mx-auto max-w-7xl`}>
 						<div className={`sm:text-left lg:text-left`}>
 							<div className={`flex items-center flex-col`}>
-								<ThreeScene />
+								<Triangle />
 							</div>
 						</div>
 					</main>
@@ -19,5 +19,6 @@ const DesktopPage = () => {
 			</div>
 		</div>
 	);
-};
+}
+
 export default DesktopPage;

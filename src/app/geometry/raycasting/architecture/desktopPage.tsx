@@ -1,5 +1,5 @@
 import React from 'react';
-import Playground from '@/components/Scenes/Playground/Playground';
+import ThreeScene from '@/components/Scenes/RayCasting/Three/Three';
 import Link from 'next/link';
 
 function DesktopPage() {
@@ -8,10 +8,10 @@ function DesktopPage() {
 			<div className={`flex items-center flex-col`}><Link href="/">Назад к меню</Link></div>
 			<div className={`relative bg-background flex items-center flex-col`}>
 				<div className={`max-w-7xl mx-auto`}>
-					<main className={`mx-auto max-w-7xl`}>
+					<main className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8`}>
 						<div className={`sm:text-left lg:text-left`}>
 							<div className={`flex items-center flex-col`}>
-								<Playground />
+								<ThreeScene />
 							</div>
 						</div>
 					</main>

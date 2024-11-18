@@ -1,4 +1,13 @@
 const uniforms = {
+	camera: {
+		type: 'struct',
+		data: {
+			eye: {
+				type: 'uniform3fv',
+				data: [0.0, 0.0, 1.0],
+			}
+		}
+	},
 	sphere: {
 		type: 'struct',
 		data: {
@@ -8,7 +17,7 @@ const uniforms = {
 			},
 			radius: {
 				type: 'uniform1f',
-				data: 0.65,
+				data: 0.5,
 			},
 			material: {
 				type: 'struct',

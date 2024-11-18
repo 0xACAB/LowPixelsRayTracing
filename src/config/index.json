@@ -10,23 +10,27 @@
       },
       {
         "name": "Сцена со сферой",
-        "href": "/geometry/sphere"
+        "href": "/geometry/raycasting/sphere"
       },
       {
         "name": "Сцена с треугольником",
-        "href": "/geometry/triangle"
+        "href": "/geometry/raycasting/triangle"
       },
       {
         "name": "Нативная сцена",
-        "href": "/geometry/native"
+        "href": "/geometry/raycasting/native"
       },
       {
         "name": "Основная сцена",
-        "href": "/geometry/architecture"
+        "href": "/geometry/raycasting/architecture"
       },
       {
         "name": "Расширенная сцена",
-        "href": "/geometry/template"
+        "href": "/geometry/raycasting/template"
+      },
+      {
+        "name": "Сцена со сферой трассировкой пути",
+        "href": "/geometry/pathtracing/sphere"
       }
     ],
     "socialMedia": {

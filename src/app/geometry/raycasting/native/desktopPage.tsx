@@ -1,13 +1,13 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
-import vert from '@/components/Scenes/Test/shaders/vert.glsl';
-import frag from '@/components/Scenes/Test/shaders/frag.glsl';
-import uniforms from '@/components/Scenes/Test/uniforms';
+import vert from '@/components/Scenes/RayCasting/Test/shaders/vert.glsl';
+import frag from '@/components/Scenes/RayCasting/Test/shaders/frag.glsl';
+import uniforms from '@/components/Scenes/RayCasting/Test/uniforms';
 import Link from 'next/link';
 import Slider from '@/components/Pixelating/Slider';
 
-const DesktopPage = () => {
+function DesktopPage() {
 	const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
 
 	const resolutions = [
@@ -31,7 +31,10 @@ const DesktopPage = () => {
 				resolutions,
 				defaultResolution: currentResolutionIndex,
 			});
-
+			const pointerDown = (event: MouseEvent) => {
+				console.log(event.offsetX, event.offsetY);
+			};
+			pixelatingCanvasRef.current.addEventListener('pointerdown', pointerDown);
 			const render = (time: number) => {
 				// convert to seconds
 				time *= 0.001;
@@ -82,5 +85,6 @@ const DesktopPage = () => {
 			</div>
 		</div>
 	);
-};
+}
+
 export default DesktopPage;

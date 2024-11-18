@@ -3,7 +3,7 @@ import MobilePage from './mobilePage';
 import React from 'react';
 import isMobileDevice from '@/lib/responsive';
 
-const Page = () => {
+function Page() {
 	const mobile: boolean = isMobileDevice(); // execute the function
 	return (
 		<>
@@ -12,6 +12,6 @@ const Page = () => {
 			}
 		</>
 	);
-};
-export default Page;
+}
 
+export default Page;

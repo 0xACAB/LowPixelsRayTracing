@@ -1,5 +1,5 @@
 import React from 'react';
-import Triangle from '@/components/Scenes/Triangle/Triangle';
+import Sphere from '@/components/Scenes/PathTracing/Sphere/Sphere';
 import Link from 'next/link';
 
 const DesktopPage = () => {
@@ -11,7 +11,7 @@ const DesktopPage = () => {
 					<main className={`mx-auto max-w-7xl`}>
 						<div className={`sm:text-left lg:text-left`}>
 							<div className={`flex items-center flex-col`}>
-								<Triangle />
+								<Sphere />
 							</div>
 						</div>
 					</main>

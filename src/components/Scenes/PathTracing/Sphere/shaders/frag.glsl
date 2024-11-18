@@ -17,6 +17,7 @@ struct Pixel {
 struct Camera {
     vec3 eye;
 };
+uniform Camera camera;
 
 struct Ray {
     vec3 origin;
@@ -60,11 +61,6 @@ Material light(in vec3 Ke) {
     return Material(vec3(0.0, 0.0, 0.0), Ke);
 }
 
-Ray initRay(in Pixel pixel, in Camera camera) {
-    vec3 direction = normalize(vec3(pixel.coordinate.xy, 0.0) - camera.eye);
-    return Ray(camera.eye, direction);
-}
-
 float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
     float a = dot(ray.direction, ray.direction);
     float b = 2.0 * dot(ray.direction, ray.origin - sphere.position);
@@ -94,28 +90,26 @@ float computeSphereIntersection(inout Ray ray, in Sphere sphere) {
 
 Scene scene;
 void init_scene() {
-    Sphere scene_spheres[2] = Sphere[2](
-    sphere,
-    lightSphere/*Sphere(vec3(2.0*cos(iTime), 2.0*sin(iTime), 0.0), 0.05, light(vec3(1.0, 1.0, 1.0)))*/
-    );
+    Sphere scene_spheres[2] = Sphere[2](sphere, lightSphere);
     scene = Scene(scene_spheres);
 }
-Camera camera = Camera(vec3(0.0, 0.0, 1.0));
 
 vec3 rayTrace() {
     Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), vec3(0.0, 0.0, 1.0));
 
-    camera.eye.x = 0.0;
-    Ray ray = initRay(pixel, camera);
+    Ray ray;
+    ray.origin = camera.eye;
+    ray.direction = normalize(vec3(pixel.coordinate.xy, 0.0) - camera.eye);
+
     Intersection I = intersection();
 
-    float ray_length = FARAWAY;
+    float rayLength = FARAWAY;
     for (int i=0; i<scene.spheres.length(); i++) {
         float ray_length2 = computeSphereIntersection(ray, scene.spheres[i]);
-        if (ray_length2 > 0.0 && ray_length2 < ray_length) {
-            ray_length = ray_length2;
+        if (ray_length2 > 0.0 && ray_length2 < rayLength) {
+            rayLength = ray_length2;
             //Точка пересечения луча со сферой
-            vec3 P = ray.origin + ray_length*ray.direction;
+            vec3 P = ray.origin + rayLength*ray.direction;
             //Нормаль к этой точке
             vec3 N = normalize(P - scene.spheres[i].position);
             if (scene.spheres[i].material.Ke != vec3(0.0, 0.0, 0.0)) {

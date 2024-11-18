@@ -68,31 +68,27 @@ const Sphere = () => {
 
 			const plane = new THREE.Mesh(geometry, material);
 
-			const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+			const sphereGeometry = new THREE.SphereGeometry(uniforms.sphere.data.radius.data, 32, 32);
 			const sphereMaterial = new THREE.MeshLambertMaterial({ color: 0xaaaaaa });
 			const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-
-			// light
-			const light = new THREE.DirectionalLight(0xffffff, 3);
-			light.position.set(2, 2, 1);
-
-			sphere.position.x = uniforms.sphere.data.position.data[0];
-			sphere.position.y = uniforms.sphere.data.position.data[1];
-			sphere.position.z = uniforms.sphere.data.position.data[2];
+			const spherePosition = uniforms.sphere.data.position.data;
+			sphere.position.set(spherePosition[0], spherePosition[1], spherePosition[2]);
 
 			const lineMaterial2 = new THREE.LineBasicMaterial({ color: 0x00FF00 });
 			const lineGeometry2 = new THREE.BufferGeometry();
 			const line2 = new THREE.Line(lineGeometry2, lineMaterial2);
-
 			const pointsL2: Array<THREE.Vector3> = [
 				new THREE.Vector3(0, 0, 1),
 			];
+
+			const light = new THREE.DirectionalLight(0xffffff, 3);
+			const lightPosition = uniforms.lightSphere.data.position.data;
+			light.position.set(lightPosition[0], lightPosition[1], lightPosition[2]);
 
 			const group = new THREE.Group();
 			group.add(plane);
 			group.add(sphere);
 			group.add(line2);
-
 			group.add(light);
 
 			scene.add(group);
@@ -151,15 +147,22 @@ const Sphere = () => {
 				if (pixelating && material.map) {
 					material.map.needsUpdate = true;
 					pixelating.render(time, (context: any, program: any) => {
-						uniforms.lightSphere.data.position.data[0] = 2.0 * Math.cos(time);
-						uniforms.lightSphere.data.position.data[1] = 2.0 * Math.sin(time);
-						light.position.set(
-							uniforms.lightSphere.data.position.data[0],
-							uniforms.lightSphere.data.position.data[1],
-							0.0,
-						);
-						const lightSpherePosition = context.getUniformLocation(program, 'lightSphere.position');
-						context.uniform3fv(lightSpherePosition, uniforms.lightSphere.data.position.data);
+
+						/*const spherePosition = uniforms.sphere.data.position.data;
+						spherePosition[0] = 1.0 * Math.cos(time);
+						spherePosition[1] = -1.0 * Math.sin(time);
+						sphere.position.setX(spherePosition[0]);
+						sphere.position.setY(spherePosition[1]);
+						const spherePositionUniformLocation = context.getUniformLocation(program, 'sphere.position');
+						context.uniform3fv(spherePositionUniformLocation, uniforms.sphere.data.position.data);*/
+
+						const lightPosition = uniforms.lightSphere.data.position.data;
+						lightPosition[0] = 2.0 * Math.cos(time);
+						lightPosition[1] = 2.0 * Math.sin(time);
+						light.position.setX(lightPosition[0]);
+						light.position.setY(lightPosition[1]);
+						const lightSpherePositionUniformLocation = context.getUniformLocation(program, 'lightSphere.position');
+						context.uniform3fv(lightSpherePositionUniformLocation, uniforms.lightSphere.data.position.data);
 					});
 				}
 				renderer.render(scene, camera);
