@@ -98,27 +98,22 @@ void init_scene() {
 
 Camera camera = Camera(vec3(0.0, 0.0, 1.0));
 vec3 rayTrace() {
-    Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), vec3(0.0, 0.0, 1.0));
+    Pixel pixel = Pixel(v_texcoord, vec3(0.0, 0.0, 1.0));
 
-    camera.eye.x = 0.0;
-    Ray ray = initRay(pixel, camera);
+    Ray ray;
+    ray.origin = camera.eye;
+    ray.direction = normalize(vec3(pixel.coordinate.xy, 0.0) - camera.eye);
+
     Intersection I = intersection();
 
-    float ray_length = FARAWAY;
     vec3 tuv=triIntersect(ray, scene.triangle);
     float t2 = tuv.x;
-    if (t2>0.0) {
-        if (t2<ray_length){
-            pixel.color = scene.triangle.material.Ke;
-        }
-        ray_length = t2;
+    if (t2>0.0 && t2<FARAWAY) {
+        pixel.color = scene.triangle.material.Ke;
     }
 
     //Делим на 2 по причине того что 0 в середине и расстояние от 0 до 1 равно половине ширины и высоты текстуры
-    if (
-    (floor(pixel.coordinate.x*(iScaleWidth/2.0))==iMouse.x) &&
-    (floor(pixel.coordinate.y*(iScaleHeight/2.0))==iMouse.y)
-    ) {
+    if (floor(vec2(pixel.coordinate.x*(iScaleWidth/2.0), pixel.coordinate.y*(iScaleHeight/2.0)))==iMouse) {
         pixel.color = vec3(1.0, 0.0, 0.0);
     }
     return pixel.color;

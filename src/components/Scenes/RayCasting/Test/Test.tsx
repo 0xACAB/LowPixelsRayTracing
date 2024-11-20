@@ -68,28 +68,19 @@ const Test = () => {
 
 			const plane = new THREE.Mesh(geometry, material);
 
-			/*const lineMaterial = new THREE.LineBasicMaterial({ color: 0xFFD400 });
-			const lineGeometry = new THREE.BufferGeometry();
-			const line = new THREE.Line(lineGeometry, lineMaterial);*/
-
 			const lineMaterial2 = new THREE.LineBasicMaterial({ color: 0x00FF00 });
 			const lineGeometry2 = new THREE.BufferGeometry();
 			const line2 = new THREE.Line(lineGeometry2, lineMaterial2);
-
-			/*const pointsL1: Array<THREE.Vector3> = [
-				new THREE.Vector3(0, 0, 1),
-			];*/
 			const pointsL2: Array<THREE.Vector3> = [
 				new THREE.Vector3(0, 0, 1),
 			];
 
 			const group = new THREE.Group();
 			group.add(plane);
-			//group.add(line);
 			group.add(line2);
 
-			scene.add(helper);
 			scene.add(group);
+			scene.add(helper);
 
 			renderer.setSize(width, height);
 
@@ -112,11 +103,7 @@ const Test = () => {
 						Math.floor((uv.x - 0.5) * width),
 						Math.floor((uv.y - 0.5) * height),
 					];
-					/*pointsL1[1] = new THREE.Vector3(
-						(uv.x - 0.5) * plane.geometry.parameters.width,
-						(uv.y - 0.5) * plane.geometry.parameters.height,
-						0,
-					);*/
+
 					const xFloored = Math.floor((uv.x - 0.5) * width) / width;
 					const yFloored = Math.floor((uv.y - 0.5) * height) / height;
 					const xHalfPixel = 1 / width * 0.5;
@@ -127,7 +114,6 @@ const Test = () => {
 						3 * (yFloored + yHalfPixel) * plane.geometry.parameters.height,
 						-2,
 					);
-					//lineGeometry.setFromPoints(pointsL1);
 					lineGeometry2.setFromPoints(pointsL2);
 				}
 
@@ -140,6 +126,7 @@ const Test = () => {
 				//convert to seconds
 				time *= 0.001;
 				group.rotation.y -= 0.005;
+
 				cameraPerspective.position.x = -Math.cos(group.rotation.y + Math.PI / 2);
 				cameraPerspective.position.z = Math.sin(group.rotation.y + Math.PI / 2);
 				cameraPerspective.lookAt(plane.position);
@@ -153,9 +140,8 @@ const Test = () => {
 				stats.update();
 			};
 			renderer.setAnimationLoop(animate);
-			// Cleanup function to dispose of WebGL resources
+
 			return () => {
-				// Stop the animation loop
 				renderer.setAnimationLoop(null);
 			};
 		}

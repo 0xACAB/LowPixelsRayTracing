@@ -18,16 +18,17 @@ const getShader = (context: WebGL2RenderingContext, type: GLenum, shaderCode: st
 };
 const Pixelating = (
 	{
-		context,
+		canvas,
 		shaders: { vert, frag, uniforms },
 		resolutions,
 		defaultResolution = 0,
 	}: {
-		context: WebGL2RenderingContext | null,
+		canvas: HTMLCanvasElement;
 		shaders: { vert: string, frag: string, uniforms: any };
 		resolutions: Array<resolution>;
 		defaultResolution?: number,
 	}) => {
+	const context = canvas.getContext('webgl2');
 	if (context) {
 		const fragmentShader = getShader(context, context.FRAGMENT_SHADER, frag);
 		const vertexShader = getShader(context, context.VERTEX_SHADER, vert);
@@ -119,15 +120,10 @@ const Pixelating = (
 
 				// render to the canvas
 				context.bindFramebuffer(context.FRAMEBUFFER, null);
-				context.bindTexture(context.TEXTURE_2D, targetTexture);
-				const render = (time?: number, callback?: any) => {
-					context.useProgram(program);
+				const render = (time: number, callback?: any) => {
 					context.drawArrays(context.TRIANGLES, 0, 6);
-
-					if (time) {
-						const iTimeLocation = context.getUniformLocation(program, 'iTime');
-						context.uniform1f(iTimeLocation, time);
-					}
+					const iTimeLocation = context.getUniformLocation(program, 'iTime');
+					context.uniform1f(iTimeLocation, time);
 					if (uniforms.iMouse) {
 						const iMouse = context.getUniformLocation(program, 'iMouse');
 						context.uniform2fv(iMouse, uniforms.iMouse.data);
@@ -142,16 +138,22 @@ const Pixelating = (
 					const resolution = resolutions[valueAsNumber];
 					context.canvas.width = resolution.width;
 					context.canvas.height = resolution.height;
+
 					context.viewport(0, 0, context.canvas.width, context.canvas.height);
 					const iScaleWidth = context.getUniformLocation(program, 'iScaleWidth');
 					const iScaleHeight = context.getUniformLocation(program, 'iScaleHeight');
 					context.uniform1f(iScaleWidth, resolution.width);
 					context.uniform1f(iScaleHeight, resolution.height);
-					render();
+					context.drawArrays(context.TRIANGLES, 0, 6);
 				};
+				const unmount = ()=>{
+					context.deleteProgram(program);
+					context.getExtension('WEBGL_lose_context')?.loseContext();
+				}
 				return {
-					context,
+					canvas,
 					render,
+					unmount,
 					onChange,
 				};
 			}
@@ -160,8 +162,9 @@ const Pixelating = (
 };
 
 export interface IPixelating {
-	context: WebGL2RenderingContext;
+	canvas: HTMLCanvasElement;
 	render: (time: number, callback?: any) => void;
+	unmount: () => void;
 	onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 

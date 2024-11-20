@@ -95,7 +95,7 @@ void init_scene() {
 }
 
 vec3 rayTrace() {
-    Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), vec3(0.0, 0.0, 1.0));
+    Pixel pixel = Pixel(v_texcoord, vec3(0.0, 0.0, 1.0));
 
     Ray ray;
     ray.origin = camera.eye;
@@ -130,10 +130,7 @@ vec3 rayTrace() {
     };
 
     //Делим на 2 по причине того что 0 в середине и расстояние от 0 до 1 равно половине ширины и высоты текстуры
-    if (
-    (floor(pixel.coordinate.x*(iScaleWidth/2.0))==iMouse.x) &&
-    (floor(pixel.coordinate.y*(iScaleHeight/2.0))==iMouse.y)
-    ) {
+    if (floor(vec2(pixel.coordinate.x*(iScaleWidth/2.0), pixel.coordinate.y*(iScaleHeight/2.0)))==iMouse) {
         pixel.color = vec3(1.0, 0.0, 0.0);
     }
     return pixel.color;

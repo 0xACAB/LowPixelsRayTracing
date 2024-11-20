@@ -167,12 +167,12 @@ AABB bbox = AABB(vec3(-1.0, -1.0, 1.0), vec3(1.0, 1.0, 0.0));
 vec3 rayTrace() {
     //Отразил здесь по y,
     //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
-    Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), vec3(0.0, 0.0, 0.0));
+    Pixel pixel = Pixel(v_texcoord, vec3(0.0, 0.0, 0.0));
 
-    //camera.eye.z = -25.0+10.5*sin(iTime);
-    camera.eye.x = 0.0;//sin(iTime)*2.2;
-    //camera.eye.y = cos(iTime)*1.2;
-    Ray ray = initRay(pixel, camera);
+    Ray ray;
+    ray.origin = camera.eye;
+    ray.direction = normalize(vec3(pixel.coordinate.xy, 0.0) - camera.eye);
+
     Intersection I = intersection();
 
     vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
@@ -196,14 +196,6 @@ vec3 rayTrace() {
 
     for (int i=0; i<scene.spheres.length(); i++) {
         float ray_length2 = computeSphereIntersection(ray, scene.spheres[i]);
-        /*vec4 tnor =
-        iEllipsoid(
-        ray.origin,
-        ray.direction,
-        vec3(1.0, 0.0, 0.0),
-        vec3(
-        0.5, 0.375-0.125*sin(iTime*2.0), 0.5)
-        );*/
         if (/*tnor.x*/ray_length2 > 0.0 && ray_length2 < ray_length) {
             ray_length = ray_length2;
             //ray_length = tnor.x;
@@ -211,13 +203,6 @@ vec3 rayTrace() {
             vec3 P = ray.origin + ray_length*ray.direction;
             //Нормаль к этой точке
             vec3 N = normalize(P - scene.spheres[i].position);
-            /*if (i==0){
-                //material
-                vec2 uv=vec2(16.0, 16.0)*vec2(atan(P.y, P.z), P.x);
-                scene.spheres[i].material.Ke =
-                (vec3(0.6)+step(0.0, cos(uv.x*0.5)*cos(uv.y*0.5))) *
-                smoothstep(-1.0, -0.99, cos(uv.x))*smoothstep(-1.0, -0.99, cos(uv.y));
-            }*/
             if (scene.spheres[i].material.Ke != vec3(0.0, 0.0, 0.0)) {
                 pixel.color = scene.spheres[i].material.Ke;
             } else {
@@ -239,11 +224,8 @@ vec3 rayTrace() {
     //}
 
     //Делим на 2 по причине того что 0 в середине и расстояние от 0 до 1 равно половине ширины и высоты текстуры
-    if (
-    (floor(pixel.coordinate.x*(iScaleWidth/2.0))==iMouse.x) &&
-    (floor(pixel.coordinate.y*(iScaleHeight/2.0))==iMouse.y)
-    ) {
-        pixel.color = vec3(0.0, 0.0, 1.0);
+    if (floor(vec2(pixel.coordinate.x*(iScaleWidth/2.0), pixel.coordinate.y*(iScaleHeight/2.0)))==iMouse) {
+        pixel.color = vec3(1.0, 0.0, 0.0);
     }
     return pixel.color;
 }

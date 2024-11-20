@@ -167,12 +167,12 @@ AABB bbox = AABB(vec3(-1.0, -1.0, 1.0), vec3(1.0, 1.0, 0.0));
 vec3 rayTrace() {
     //Отразил здесь по y,
     //чтобы совместить координатные оси спрайта на текстуру которого выводится сцена с координатами сцены
-    Pixel pixel = Pixel(vec2(v_texcoord.x, v_texcoord.y), vec3(0.0, 0.0, 0.0));
+    Pixel pixel = Pixel(v_texcoord, vec3(0.0, 0.0, 0.0));
 
-    //camera.eye.z = -25.0+10.5*sin(iTime);
-    camera.eye.x = 0.0;//sin(iTime)*2.2;
-    //camera.eye.y = cos(iTime)*1.2;
-    Ray ray = initRay(pixel, camera);
+    Ray ray;
+    ray.origin = camera.eye;
+    ray.direction = normalize(vec3(pixel.coordinate.xy, 0.0) - camera.eye);
+
     Intersection I = intersection();
 
     vec3 invDir = vec3(1.0/ray.direction.x, 1.0/ray.direction.y, 1.0/ray.direction.z);
@@ -223,11 +223,8 @@ vec3 rayTrace() {
 
 
     //Делим на 2 по причине того что 0 в середине и расстояние от 0 до 1 равно половине ширины и высоты текстуры
-    if (
-    (floor(pixel.coordinate.x*(iScaleWidth/2.0))==iMouse.x) &&
-    (floor(pixel.coordinate.y*(iScaleHeight/2.0))==iMouse.y)
-    ) {
-        pixel.color = vec3(0.0, 0.0, 1.0);
+    if (floor(vec2(pixel.coordinate.x*(iScaleWidth/2.0), pixel.coordinate.y*(iScaleHeight/2.0)))==iMouse) {
+        pixel.color = vec3(1.0, 0.0, 0.0);
     }
     return pixel.color;
 }

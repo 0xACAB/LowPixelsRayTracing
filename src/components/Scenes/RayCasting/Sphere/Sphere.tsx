@@ -51,19 +51,24 @@ const Sphere = () => {
 			material = new THREE.MeshBasicMaterial();
 			// set canvas as material.map (this could be done to any map, bump, displacement etc.)
 			if (pixelatingCanvasRef.current) {
-				const context = pixelatingCanvasRef.current.getContext('webgl2');
 				pixelating = Pixelating({
-					context,
+					canvas: pixelatingCanvasRef.current,
 					shaders: { vert, frag, uniforms },
 					resolutions,
 					defaultResolution: currentResolutionIndex,
 				});
-
-				material.map = new THREE.CanvasTexture(pixelatingCanvasRef.current);
-				material.map.magFilter = THREE.NearestFilter;
-				material.side = THREE.DoubleSide;
-				material.transparent = true;
-				material.opacity = 0.4;
+				if (pixelating) {
+					material.map = new THREE.CanvasTexture(
+						pixelating.canvas,
+						undefined,
+						undefined,
+						undefined,
+						THREE.NearestFilter,
+					);
+					material.side = THREE.DoubleSide;
+					material.transparent = true;
+					material.opacity = 0.4;
+				}
 			}
 
 			const plane = new THREE.Mesh(geometry, material);
@@ -148,20 +153,21 @@ const Sphere = () => {
 					material.map.needsUpdate = true;
 					pixelating.render(time, (context: any, program: any) => {
 
-						/*const spherePosition = uniforms.sphere.data.position.data;
-						spherePosition[0] = 1.0 * Math.cos(time);
-						spherePosition[1] = -1.0 * Math.sin(time);
+						const spherePosition = uniforms.sphere.data.position.data;
+						spherePosition[0] = Math.cos(time);
+						spherePosition[1] = -Math.sin(time);
 						sphere.position.setX(spherePosition[0]);
 						sphere.position.setY(spherePosition[1]);
 						const spherePositionUniformLocation = context.getUniformLocation(program, 'sphere.position');
-						context.uniform3fv(spherePositionUniformLocation, uniforms.sphere.data.position.data);*/
+						context.uniform3fv(spherePositionUniformLocation, uniforms.sphere.data.position.data);
 
 						const lightPosition = uniforms.lightSphere.data.position.data;
 						lightPosition[0] = 2.0 * Math.cos(time);
 						lightPosition[1] = 2.0 * Math.sin(time);
 						light.position.setX(lightPosition[0]);
 						light.position.setY(lightPosition[1]);
-						const lightSpherePositionUniformLocation = context.getUniformLocation(program, 'lightSphere.position');
+						const lightSpherePositionUniformLocation = context.getUniformLocation(program,
+							'lightSphere.position');
 						context.uniform3fv(lightSpherePositionUniformLocation, uniforms.lightSphere.data.position.data);
 					});
 				}
@@ -171,7 +177,12 @@ const Sphere = () => {
 			renderer.setAnimationLoop(animate);
 
 			return () => {
+				if (pixelating) {
+					pixelating.unmount();
+				}
 				renderer.setAnimationLoop(null);
+				renderer.resetState();
+				renderer.forceContextLoss();
 			};
 		}
 	}, []);
@@ -179,8 +190,9 @@ const Sphere = () => {
 	const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (material && pixelating) {
 			currentResolutionIndex = event.target.valueAsNumber;
-			material.map = new THREE.CanvasTexture(pixelating.context.canvas);
-			material.map.magFilter = THREE.NearestFilter;
+			if (material.map) {
+				material.map.dispose();
+			}
 			uniforms.iMouse.data = [-999, -999];
 
 			pixelating.onChange(event);
