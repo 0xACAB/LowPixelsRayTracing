@@ -16,7 +16,8 @@ const getShader = (context: WebGL2RenderingContext, type: GLenum, shaderCode: st
 		return null;
 	}
 };
-const Pixelating = (
+
+function Pixelating(
 	{
 		canvas,
 		shaders: { vert, frag, uniforms },
@@ -27,7 +28,7 @@ const Pixelating = (
 		shaders: { vert: string, frag: string, uniforms: any };
 		resolutions: Array<resolution>;
 		defaultResolution?: number,
-	}) => {
+	}) {
 	const context = canvas.getContext('webgl2');
 	if (context) {
 		const fragmentShader = getShader(context, context.FRAGMENT_SHADER, frag);
@@ -146,10 +147,10 @@ const Pixelating = (
 					context.uniform1f(iScaleHeight, resolution.height);
 					context.drawArrays(context.TRIANGLES, 0, 6);
 				};
-				const unmount = ()=>{
+				const unmount = () => {
 					context.deleteProgram(program);
 					context.getExtension('WEBGL_lose_context')?.loseContext();
-				}
+				};
 				return {
 					canvas,
 					render,
@@ -159,7 +160,38 @@ const Pixelating = (
 			}
 		}
 	}
-};
+}
+
+export class Pixelating2 {
+	private context: WebGL2RenderingContext | null;
+
+	constructor({
+		canvas,
+		shaders: { vert, frag, uniforms },
+		resolutions,
+		defaultResolution = 0,
+	}: {
+		canvas: HTMLCanvasElement;
+		shaders: { vert: string, frag: string, uniforms: any };
+		resolutions: Array<resolution>;
+		defaultResolution?: number,
+	}) {
+		this.context = canvas.getContext('webgl2');
+	}
+
+	render() {
+
+	}
+
+	onChange() {
+
+	}
+
+	unmount() {
+
+	}
+
+}
 
 export interface IPixelating {
 	canvas: HTMLCanvasElement;

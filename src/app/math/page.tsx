@@ -1,10 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 
-const Page = () => {
+function Page() {
 	return (
 		<>
-
 			<div className={`flex items-center flex-col`}>{'Листки НМУ'}</div>
 			<div className={`flex justify-left`}>
 				<div>
@@ -19,5 +18,6 @@ const Page = () => {
 			</div>
 		</>
 	);
-};
+}
+
 export default Page;

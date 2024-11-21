@@ -8,7 +8,7 @@ import uniforms from './uniforms';
 import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
 import Slider from '@/components/Pixelating/Slider';
 
-const Scene = () => {
+function Scene() {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
 	const resolutions = [
@@ -42,16 +42,21 @@ const Scene = () => {
 			material = new THREE.MeshBasicMaterial();
 			// set canvas as material.map (this could be done to any map, bump, displacement etc.)
 			if (pixelatingCanvasRef.current) {
-				const context = pixelatingCanvasRef.current.getContext('webgl2');
 				pixelating = Pixelating({
-					context,
+					canvas: pixelatingCanvasRef.current,
 					shaders: { vert, frag, uniforms },
 					resolutions,
 					defaultResolution: currentResolutionIndex,
 				});
-
-				material.map = new THREE.CanvasTexture(pixelatingCanvasRef.current);
-				material.map.magFilter = THREE.NearestFilter;
+				if (pixelating) {
+					material.map = new THREE.CanvasTexture(
+						pixelating.canvas,
+						undefined,
+						undefined,
+						undefined,
+						THREE.NearestFilter,
+					);
+				}
 			}
 
 			const plane = new THREE.Mesh(geometry, material);
@@ -94,25 +99,25 @@ const Scene = () => {
 				renderer.render(scene, camera);
 			};
 			renderer.setAnimationLoop(animate);
-			// Cleanup function to dispose of WebGL resources
+
 			return () => {
-				// Stop the animation loop
+				if (pixelating) {
+					pixelating.unmount();
+				}
 				renderer.setAnimationLoop(null);
+				renderer.forceContextLoss();
 			};
 		}
 	}, []);
 
 	const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (material && pixelating) {
+		if (material.map && pixelating) {
 			currentResolutionIndex = event.target.valueAsNumber;
-			material.map = new THREE.CanvasTexture(pixelating.context.canvas);
-			material.map.magFilter = THREE.NearestFilter;
 			uniforms.iMouse.data = [-999, -999];
-
+			material.map.dispose();
 			pixelating.onChange(event);
 		}
 	};
-
 	return (
 		<>
 			<canvas id="canvas" className={`pixelated`} width={512} height={512} ref={canvasRef}></canvas>

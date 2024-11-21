@@ -6,10 +6,10 @@ import Stats from 'three/addons/libs/stats.module.js';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
+import { Pixelating,Pixelating2, IPixelating } from '@/components/Pixelating/Pixelating';
 import Slider from '@/components/Pixelating/Slider';
 
-const Sphere = () => {
+function Sphere() {
 	const statsRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,7 +24,8 @@ const Sphere = () => {
 	let currentResolutionIndex = 1;
 
 	let material: THREE.MeshBasicMaterial;
-	let pixelating: IPixelating | undefined;
+	let pixelating: IPixelating;
+	let pixelating2: Pixelating2;
 	useEffect(() => {
 		if (canvasRef.current) {
 			const canvas = canvasRef.current;
@@ -51,12 +52,20 @@ const Sphere = () => {
 			material = new THREE.MeshBasicMaterial();
 			// set canvas as material.map (this could be done to any map, bump, displacement etc.)
 			if (pixelatingCanvasRef.current) {
-				pixelating = Pixelating({
+				pixelating = new (Pixelating as any)({
 					canvas: pixelatingCanvasRef.current,
 					shaders: { vert, frag, uniforms },
 					resolutions,
 					defaultResolution: currentResolutionIndex,
 				});
+				//TODO
+				pixelating2 = new Pixelating2({
+					canvas: pixelatingCanvasRef.current,
+					shaders: { vert, frag, uniforms },
+					resolutions,
+					defaultResolution: currentResolutionIndex,
+				});
+
 				if (pixelating) {
 					material.map = new THREE.CanvasTexture(
 						pixelating.canvas,
@@ -181,20 +190,16 @@ const Sphere = () => {
 					pixelating.unmount();
 				}
 				renderer.setAnimationLoop(null);
-				renderer.resetState();
 				renderer.forceContextLoss();
 			};
 		}
 	}, []);
 
 	const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (material && pixelating) {
+		if (material.map && pixelating) {
 			currentResolutionIndex = event.target.valueAsNumber;
-			if (material.map) {
-				material.map.dispose();
-			}
 			uniforms.iMouse.data = [-999, -999];
-
+			material.map.dispose();
 			pixelating.onChange(event);
 		}
 	};
@@ -206,6 +211,6 @@ const Sphere = () => {
 			<Slider onChange={onChange} resolutions={resolutions} defaultResolution={currentResolutionIndex} />
 		</>
 	);
-};
+}
 
 export default Sphere;

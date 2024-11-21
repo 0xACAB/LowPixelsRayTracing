@@ -24,9 +24,8 @@ function DesktopPage() {
 	useEffect(() => {
 		let animationId: number;
 		if (pixelatingCanvasRef.current) {
-			const context = pixelatingCanvasRef.current.getContext('webgl2');
 			pixelating = Pixelating({
-				context,
+				canvas: pixelatingCanvasRef.current,
 				shaders: { vert, frag, uniforms },
 				resolutions,
 				defaultResolution: currentResolutionIndex,
@@ -44,11 +43,12 @@ function DesktopPage() {
 				}
 			};
 			render(0);
-			// Cleanup function to dispose of WebGL resources
 			return () => {
-				// Cancel the animation frame
 				if (animationId) {
 					cancelAnimationFrame(animationId);
+				}
+				if (pixelating) {
+					pixelating.unmount();
 				}
 			};
 		}

@@ -3,7 +3,7 @@ import React from 'react';
 import config from '../config/index.json';
 import Link from 'next/link';
 
-const About = () => {
+function About() {
 	const { socialMedia, sections } = config.about;
 
 	return (

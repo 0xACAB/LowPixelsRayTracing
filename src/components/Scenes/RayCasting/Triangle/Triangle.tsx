@@ -9,7 +9,7 @@ import uniforms from './uniforms';
 import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
 import Slider from '@/components/Pixelating/Slider';
 
-const Triangle = () => {
+function Triangle() {
 	const statsRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,19 +51,24 @@ const Triangle = () => {
 			material = new THREE.MeshBasicMaterial();
 			// set canvas as material.map (this could be done to any map, bump, displacement etc.)
 			if (pixelatingCanvasRef.current) {
-				const context = pixelatingCanvasRef.current.getContext('webgl2');
 				pixelating = Pixelating({
-					context,
+					canvas: pixelatingCanvasRef.current,
 					shaders: { vert, frag, uniforms },
 					resolutions,
 					defaultResolution: currentResolutionIndex,
 				});
-
-				material.map = new THREE.CanvasTexture(pixelatingCanvasRef.current);
-				material.map.magFilter = THREE.NearestFilter;
-				material.side = THREE.DoubleSide;
-				material.transparent = true;
-				material.opacity = 0.4;
+				if (pixelating) {
+					material.map = new THREE.CanvasTexture(
+						pixelating.canvas,
+						undefined,
+						undefined,
+						undefined,
+						THREE.NearestFilter,
+					);
+					material.side = THREE.DoubleSide;
+					material.transparent = true;
+					material.opacity = 0.4;
+				}
 			}
 
 			const plane = new THREE.Mesh(geometry, material);
@@ -77,17 +82,9 @@ const Triangle = () => {
 			const triangle = new THREE.Mesh(triangleGeometry, triangleMaterial);
 			triangle.material.side = THREE.DoubleSide;
 
-			/*const lineMaterial = new THREE.LineBasicMaterial({ color: 0xFFD400 });
-			const lineGeometry = new THREE.BufferGeometry();
-			const line = new THREE.Line(lineGeometry, lineMaterial);*/
-
 			const lineMaterial2 = new THREE.LineBasicMaterial({ color: 0x00FF00 });
 			const lineGeometry2 = new THREE.BufferGeometry();
 			const line2 = new THREE.Line(lineGeometry2, lineMaterial2);
-
-			/*const pointsL1: Array<THREE.Vector3> = [
-				new THREE.Vector3(0, 0, 1),
-			];*/
 			const pointsL2: Array<THREE.Vector3> = [
 				new THREE.Vector3(0, 0, 1),
 			];
@@ -95,11 +92,10 @@ const Triangle = () => {
 			const group = new THREE.Group();
 			group.add(plane);
 			group.add(triangle);
-			//group.add(line);
 			group.add(line2);
 
-			scene.add(helper);
 			scene.add(group);
+			scene.add(helper);
 
 			renderer.setSize(width, height);
 
@@ -122,11 +118,6 @@ const Triangle = () => {
 						Math.floor((uv.x - 0.5) * width),
 						Math.floor((uv.y - 0.5) * height),
 					];
-					/*pointsL1[1] = new THREE.Vector3(
-						(uv.x - 0.5) * plane.geometry.parameters.width,
-						(uv.y - 0.5) * plane.geometry.parameters.height,
-						0,
-					);*/
 					const xFloored = Math.floor((uv.x - 0.5) * width) / width;
 					const yFloored = Math.floor((uv.y - 0.5) * height) / height;
 					const xHalfPixel = 1 / width * 0.5;
@@ -137,7 +128,6 @@ const Triangle = () => {
 						3 * (yFloored + yHalfPixel) * plane.geometry.parameters.height,
 						-2,
 					);
-					//lineGeometry.setFromPoints(pointsL1);
 					lineGeometry2.setFromPoints(pointsL2);
 				}
 
@@ -150,6 +140,7 @@ const Triangle = () => {
 				//convert to seconds
 				time *= 0.001;
 				group.rotation.y -= 0.005;
+
 				cameraPerspective.position.x = -Math.cos(group.rotation.y + Math.PI / 2);
 				cameraPerspective.position.z = Math.sin(group.rotation.y + Math.PI / 2);
 				cameraPerspective.lookAt(plane.position);
@@ -163,21 +154,22 @@ const Triangle = () => {
 				stats.update();
 			};
 			renderer.setAnimationLoop(animate);
-			// Cleanup function to dispose of WebGL resources
+
 			return () => {
-				// Stop the animation loop
+				if (pixelating) {
+					pixelating.unmount();
+				}
 				renderer.setAnimationLoop(null);
+				renderer.forceContextLoss();
 			};
 		}
 	}, []);
 
 	const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (material && pixelating) {
+		if (material.map && pixelating) {
 			currentResolutionIndex = event.target.valueAsNumber;
-			material.map = new THREE.CanvasTexture(pixelating.context.canvas);
-			material.map.magFilter = THREE.NearestFilter;
 			uniforms.iMouse.data = [-999, -999];
-
+			material.map.dispose();
 			pixelating.onChange(event);
 		}
 	};
