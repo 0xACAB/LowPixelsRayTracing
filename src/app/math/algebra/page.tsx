@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import SpoilerForSolution from '@/components/SpoilerForSolution';
 
-function Page() {
+export default function Page() {
 	return (<>
 		<div className={`flex items-left flex-col`}><Link href="/math">Назад к листкам</Link></div>
 		<div className="text-right">
@@ -33,5 +33,3 @@ function Page() {
 		<SpoilerForSolution>Пусто2</SpoilerForSolution>
 	</>);
 }
-
-export default Page;

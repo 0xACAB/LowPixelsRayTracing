@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 
-function SpoilerForSolution({ children }: { children: React.ReactNode }) {
+export default function SpoilerForSolution({ children }: { children: React.ReactNode }) {
 	const [hidden, setHidden] = useState(true);
 	return (<>
 		<div className="m-1">
@@ -14,5 +14,3 @@ function SpoilerForSolution({ children }: { children: React.ReactNode }) {
 		</div>
 	</>);
 };
-
-export default SpoilerForSolution;

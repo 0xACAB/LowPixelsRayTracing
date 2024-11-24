@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
-import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
+import Pixelating from '@/components/Pixelating/Pixelating';
 import vert from '@/components/Scenes/RayCasting/Test/shaders/vert.glsl';
 import frag from '@/components/Scenes/RayCasting/Test/shaders/frag.glsl';
 import uniforms from '@/components/Scenes/RayCasting/Test/uniforms';
@@ -11,6 +11,7 @@ function DesktopPage() {
 	const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
 
 	const resolutions = [
+		{ width: 8, height: 8 },
 		{ width: 16, height: 16 },
 		{ width: 32, height: 32 },
 		{ width: 64, height: 64 },
@@ -18,22 +19,25 @@ function DesktopPage() {
 		{ width: 256, height: 256 },
 		{ width: 512, height: 512 },
 	];
-	let currentResolutionIndex = 0;
+	let currentResolutionIndex = 1;
 
-	let pixelating: IPixelating | undefined;
+	let pixelating: Pixelating;
 	useEffect(() => {
-		let animationId: number;
 		if (pixelatingCanvasRef.current) {
-			pixelating = Pixelating({
-				canvas: pixelatingCanvasRef.current,
-				shaders: { vert, frag, uniforms },
+			//Create controller for plane CanvasTexture
+			pixelating = new Pixelating(
+				pixelatingCanvasRef.current,
+				{ vert, frag, uniforms },
 				resolutions,
-				defaultResolution: currentResolutionIndex,
-			});
+				currentResolutionIndex,
+			);
+
 			const pointerDown = (event: MouseEvent) => {
 				console.log(event.offsetX, event.offsetY);
 			};
 			pixelatingCanvasRef.current.addEventListener('pointerdown', pointerDown);
+
+			let animationId: number;
 			const render = (time: number) => {
 				// convert to seconds
 				time *= 0.001;
@@ -44,11 +48,11 @@ function DesktopPage() {
 			};
 			render(0);
 			return () => {
-				if (animationId) {
-					cancelAnimationFrame(animationId);
-				}
 				if (pixelating) {
 					pixelating.unmount();
+				}
+				if (animationId) {
+					cancelAnimationFrame(animationId);
 				}
 			};
 		}

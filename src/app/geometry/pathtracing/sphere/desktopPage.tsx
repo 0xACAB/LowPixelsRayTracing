@@ -2,7 +2,7 @@ import React from 'react';
 import Sphere from '@/components/Scenes/PathTracing/Sphere/Sphere';
 import Link from 'next/link';
 
-const DesktopPage = () => {
+export default function DesktopPage() {
 	return (
 		<div className={`bg-background grid gap-y-0 overflow-hidden`}>
 			<div className={`flex items-center flex-col`}><Link href="/">Назад к меню</Link></div>
@@ -20,4 +20,3 @@ const DesktopPage = () => {
 		</div>
 	);
 };
-export default DesktopPage;

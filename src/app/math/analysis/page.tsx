@@ -4,7 +4,7 @@ import 'katex/dist/katex.min.css';
 import Latex from 'react-latex-next';
 import SpoilerForSolution from '@/components/SpoilerForSolution';
 
-function Page() {
+export default function Page() {
 	return (<>
 		<div className={`flex items-left flex-col`}><Link href="/math">Назад к листкам</Link></div>
 		<div className="text-right">
@@ -22,5 +22,3 @@ function Page() {
 		<SpoilerForSolution>Пусто1</SpoilerForSolution>
 	</>);
 }
-
-export default Page;

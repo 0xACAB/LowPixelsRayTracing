@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { resolution } from '@/components/interfaces';
 
-function Slider(
+export default function Slider(
 	{
 		onChange,
 		resolutions,
@@ -34,6 +34,3 @@ function Slider(
 		</>
 	);
 }
-;
-
-export default Slider;

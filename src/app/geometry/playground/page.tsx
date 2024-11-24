@@ -3,9 +3,7 @@ import MobilePage from './mobilePage';
 import React from 'react';
 import isMobileDevice from '@/lib/responsive';
 
-function Page() {
-	const mobile: boolean = isMobileDevice(); // execute the function
+export default async function Page() {
+	const mobile: boolean = await isMobileDevice(); // execute the function
 	return (<>{mobile ? <MobilePage /> : <DesktopPage />}</>);
 }
-
-export default Page;

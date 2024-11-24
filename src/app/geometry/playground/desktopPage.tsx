@@ -2,7 +2,7 @@ import React from 'react';
 import Playground from '@/components/Scenes/Playground/Playground';
 import Link from 'next/link';
 
-function DesktopPage() {
+export default function DesktopPage() {
 	return (
 		<div className={`bg-background grid gap-y-0 overflow-hidden`}>
 			<div className={`flex items-center flex-col`}><Link href="/">Назад к меню</Link></div>
@@ -20,5 +20,3 @@ function DesktopPage() {
 		</div>
 	);
 }
-
-export default DesktopPage;

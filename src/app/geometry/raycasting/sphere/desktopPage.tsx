@@ -2,7 +2,7 @@ import React from 'react';
 import Sphere from '@/components/Scenes/RayCasting/Sphere/Sphere';
 import Link from 'next/link';
 
-function DesktopPage() {
+export default function DesktopPage() {
 	return (
 		<div className={`bg-background grid gap-y-0 overflow-hidden`}>
 			<div className={`flex items-center flex-col`}>
@@ -22,5 +22,3 @@ function DesktopPage() {
 		</div>
 	);
 }
-
-export default DesktopPage;

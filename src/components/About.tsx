@@ -3,7 +3,7 @@ import React from 'react';
 import config from '../config/index.json';
 import Link from 'next/link';
 
-function About() {
+export default function About() {
 	const { socialMedia, sections } = config.about;
 
 	return (
@@ -79,5 +79,4 @@ function About() {
 			</div>
 		</div>
 	);
-};
-export default About;
+}

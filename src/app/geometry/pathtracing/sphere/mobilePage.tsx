@@ -1,6 +1,6 @@
 import React from 'react';
 
-function MobilePage() {
+export default function MobilePage() {
 	return (
 		<div className={`bg-background grid gap-y-16 overflow-hidden`}>
 			<div className={`relative bg-background flex items-center flex-col`}>
@@ -18,5 +18,3 @@ function MobilePage() {
 		</div>
 	);
 }
-
-export default MobilePage;

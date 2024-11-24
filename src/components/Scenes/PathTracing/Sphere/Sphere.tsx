@@ -6,10 +6,11 @@ import Stats from 'three/addons/libs/stats.module.js';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
+
+import Pixelating from '@/components/Pixelating/Pixelating';
 import Slider from '@/components/Pixelating/Slider';
 
-function Sphere() {
+export default function Sphere() {
 	const statsRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,52 +25,30 @@ function Sphere() {
 	let currentResolutionIndex = 1;
 
 	let material: THREE.MeshBasicMaterial;
-	let pixelating: IPixelating | undefined;
+	let pixelating: Pixelating;
 	useEffect(() => {
-		if (canvasRef.current) {
-			const canvas = canvasRef.current;
-			const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ canvas });
+		if (canvasRef.current && pixelatingCanvasRef.current) {
+			//Create Stats for fps info
 			const stats = new Stats();
 			if (statsRef.current) {
 				statsRef.current.appendChild(stats.dom);
 			}
 
-			const scene = new THREE.Scene();
-			const width = canvas.width;
-			const height = canvas.height;
-			const camera = new THREE.PerspectiveCamera(
-				90,
-				width / height,
-				0.1,
-				1000,
+			//Create controller for plane CanvasTexture
+			pixelating = new Pixelating(
+				pixelatingCanvasRef.current,
+				{ vert, frag, uniforms },
+				resolutions,
+				currentResolutionIndex,
 			);
-			//aspect ratio should be 1:1 now
-			const cameraPerspective = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
-			const helper = new THREE.CameraHelper(cameraPerspective);
 
 			const geometry = new THREE.PlaneGeometry(2.0, 2.0);
 			material = new THREE.MeshBasicMaterial();
-			// set canvas as material.map (this could be done to any map, bump, displacement etc.)
-			if (pixelatingCanvasRef.current) {
-				pixelating = Pixelating({
-					canvas: pixelatingCanvasRef.current,
-					shaders: { vert, frag, uniforms },
-					resolutions,
-					defaultResolution: currentResolutionIndex,
-				});
-				if (pixelating) {
-					material.map = new THREE.CanvasTexture(
-						pixelating.canvas,
-						undefined,
-						undefined,
-						undefined,
-						THREE.NearestFilter,
-					);
-					material.side = THREE.DoubleSide;
-					material.transparent = true;
-					material.opacity = 0.4;
-				}
-			}
+			material.map = new THREE.CanvasTexture(pixelating.canvas);
+			material.map.magFilter = THREE.NearestFilter;
+			material.side = THREE.DoubleSide;
+			material.transparent = true;
+			material.opacity = 0.4;
 
 			const plane = new THREE.Mesh(geometry, material);
 
@@ -90,26 +69,37 @@ function Sphere() {
 			const lightPosition = uniforms.lightSphere.data.position.data;
 			light.position.set(lightPosition[0], lightPosition[1], lightPosition[2]);
 
+			const canvas = canvasRef.current;
+			const width = canvas.width;
+			const height = canvas.height;
+
+			const camera
+				= new THREE.PerspectiveCamera(90, width / height, 0.1, 1000);
+			camera.position.z = 2.0;
+
+			//aspect ratio should be 1:1 now
+			const cameraPerspective
+				= new THREE.PerspectiveCamera(90, width / height, 1, 1000);
+			const helper = new THREE.CameraHelper(cameraPerspective);
+
 			const group = new THREE.Group();
 			group.add(plane);
 			group.add(sphere);
 			group.add(line2);
 			group.add(light);
 
+			const scene = new THREE.Scene();
 			scene.add(group);
 			scene.add(helper);
 
-			renderer.setSize(width, height);
-
 			const pointer = new THREE.Vector2(-999, -999);
 			const rayCaster = new THREE.Raycaster();
-
 			const pointerDown = (event: MouseEvent) => {
 				// calculate pointer position in normalized device coordinates
 				// (-1 to +1) for both components
 				const rect = canvas.getBoundingClientRect();
-				pointer.x = ((event.clientX - rect.left) / canvas.width) * 2 - 1;
-				pointer.y = -((event.clientY - rect.top) / canvas.height) * 2 + 1;
+				pointer.x = ((event.clientX - rect.left) / width) * 2 - 1;
+				pointer.y = -((event.clientY - rect.top) / height) * 2 + 1;
 				rayCaster.setFromCamera(pointer, camera);
 				// calculate objects intersecting the picking ray
 				const intersects = rayCaster.intersectObjects([plane], false);
@@ -137,7 +127,8 @@ function Sphere() {
 			};
 			canvas.addEventListener('pointerdown', pointerDown);
 
-			camera.position.z = 2.0;
+			const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ canvas });
+			renderer.setSize(width, height);
 			//group.rotation.y = Math.PI / 4;
 			const animate = (time: number) => {
 				//convert to seconds
@@ -151,14 +142,14 @@ function Sphere() {
 
 				if (pixelating && material.map) {
 					material.map.needsUpdate = true;
-					pixelating.render(time, (context: any, program: any) => {
-
+					const moveObjects = (context: WebGL2RenderingContext, program: WebGLProgram) => {
 						const spherePosition = uniforms.sphere.data.position.data;
 						spherePosition[0] = Math.cos(time);
 						spherePosition[1] = -Math.sin(time);
 						sphere.position.setX(spherePosition[0]);
 						sphere.position.setY(spherePosition[1]);
-						const spherePositionUniformLocation = context.getUniformLocation(program, 'sphere.position');
+						const spherePositionUniformLocation =
+							context.getUniformLocation(program, 'sphere.position');
 						context.uniform3fv(spherePositionUniformLocation, uniforms.sphere.data.position.data);
 
 						const lightPosition = uniforms.lightSphere.data.position.data;
@@ -166,14 +157,16 @@ function Sphere() {
 						lightPosition[1] = 2.0 * Math.sin(time);
 						light.position.setX(lightPosition[0]);
 						light.position.setY(lightPosition[1]);
-						const lightSpherePositionUniformLocation = context.getUniformLocation(program,
-							'lightSphere.position');
+						const lightSpherePositionUniformLocation =
+							context.getUniformLocation(program, 'lightSphere.position');
 						context.uniform3fv(lightSpherePositionUniformLocation, uniforms.lightSphere.data.position.data);
-					});
+					};
+					pixelating.render(time, moveObjects);
 				}
 				renderer.render(scene, camera);
 				stats.update();
 			};
+
 			renderer.setAnimationLoop(animate);
 
 			return () => {
@@ -187,7 +180,7 @@ function Sphere() {
 	}, []);
 
 	const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (material.map && pixelating) {
+		if (pixelating && material.map) {
 			currentResolutionIndex = event.target.valueAsNumber;
 			uniforms.iMouse.data = [-999, -999];
 			material.map.dispose();
@@ -202,6 +195,4 @@ function Sphere() {
 			<Slider onChange={onChange} resolutions={resolutions} defaultResolution={currentResolutionIndex} />
 		</>
 	);
-};
-
-export default Sphere;
+}

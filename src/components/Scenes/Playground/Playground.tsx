@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-function Playground() {
+export default function Playground() {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	useEffect(() => {
 		// Initialize the WebGL renderer if it doesn't already exist
@@ -32,5 +32,3 @@ function Playground() {
 		<canvas id="canvas" className={`pixelated`} width={512} height={512} ref={canvasRef}></canvas>
 	</div>;
 }
-
-export default Playground;

@@ -6,14 +6,16 @@ import Stats from 'three/addons/libs/stats.module.js';
 import vert from './shaders/vert.glsl';
 import frag from './shaders/frag.glsl';
 import uniforms from './uniforms';
-import { Pixelating, IPixelating } from '@/components/Pixelating/Pixelating';
+
+import Pixelating from '@/components/Pixelating/Pixelating';
 import Slider from '@/components/Pixelating/Slider';
 
-function Test() {
+export default function Test() {
 	const statsRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const pixelatingCanvasRef = useRef<HTMLCanvasElement>(null);
 	const resolutions = [
+		{ width: 8, height: 8 },
 		{ width: 16, height: 16 },
 		{ width: 32, height: 32 },
 		{ width: 64, height: 64 },
@@ -24,52 +26,30 @@ function Test() {
 	let currentResolutionIndex = 1;
 
 	let material: THREE.MeshBasicMaterial;
-	let pixelating: IPixelating | undefined;
+	let pixelating: Pixelating;
 	useEffect(() => {
-		if (canvasRef.current) {
-			const canvas = canvasRef.current;
-			const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ canvas });
+		if (canvasRef.current && pixelatingCanvasRef.current) {
+			//Create Stats for fps info
 			const stats = new Stats();
 			if (statsRef.current) {
 				statsRef.current.appendChild(stats.dom);
 			}
 
-			const scene = new THREE.Scene();
-			const width = canvas.width;
-			const height = canvas.height;
-			const camera = new THREE.PerspectiveCamera(
-				90,
-				width / height,
-				0.1,
-				1000,
+			//Create controller for plane CanvasTexture
+			pixelating = new Pixelating(
+				pixelatingCanvasRef.current,
+				{ vert, frag, uniforms },
+				resolutions,
+				currentResolutionIndex,
 			);
-			//aspect ratio should be 1:1 now
-			const cameraPerspective = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
-			const helper = new THREE.CameraHelper(cameraPerspective);
 
 			const geometry = new THREE.PlaneGeometry(2.0, 2.0);
 			material = new THREE.MeshBasicMaterial();
-			// set canvas as material.map (this could be done to any map, bump, displacement etc.)
-			if (pixelatingCanvasRef.current) {
-				pixelating = Pixelating({
-					canvas: pixelatingCanvasRef.current,
-					shaders: { vert, frag, uniforms },
-					resolutions,
-					defaultResolution: currentResolutionIndex,
-				});
-				if (pixelating) {
-					material.map = new THREE.CanvasTexture(
-						pixelating.canvas,
-						undefined,
-						undefined,
-						undefined,
-						THREE.NearestFilter,
-					);
-					material.side = THREE.DoubleSide;
-					material.transparent = true;
-					material.opacity = 0.4;
-				}
-			}
+			material.map = new THREE.CanvasTexture(pixelating.canvas);
+			material.map.magFilter = THREE.NearestFilter;
+			material.side = THREE.DoubleSide;
+			material.transparent = true;
+			material.opacity = 0.4;
 
 			const plane = new THREE.Mesh(geometry, material);
 
@@ -80,24 +60,35 @@ function Test() {
 				new THREE.Vector3(0, 0, 1),
 			];
 
+			const canvas = canvasRef.current;
+			const width = canvas.width;
+			const height = canvas.height;
+
+			const camera
+				= new THREE.PerspectiveCamera(90, width / height, 0.1, 1000);
+			camera.position.z = 2.0;
+
+			//aspect ratio should be 1:1 now
+			const cameraPerspective
+				= new THREE.PerspectiveCamera(90, width / height, 1, 1000);
+			const helper = new THREE.CameraHelper(cameraPerspective);
+
 			const group = new THREE.Group();
 			group.add(plane);
 			group.add(line2);
 
+			const scene = new THREE.Scene();
 			scene.add(group);
 			scene.add(helper);
 
-			renderer.setSize(width, height);
-
 			const pointer = new THREE.Vector2(-999, -999);
 			const rayCaster = new THREE.Raycaster();
-
 			const pointerDown = (event: MouseEvent) => {
 				// calculate pointer position in normalized device coordinates
 				// (-1 to +1) for both components
 				const rect = canvas.getBoundingClientRect();
-				pointer.x = ((event.clientX - rect.left) / canvas.width) * 2 - 1;
-				pointer.y = -((event.clientY - rect.top) / canvas.height) * 2 + 1;
+				pointer.x = ((event.clientX - rect.left) / width) * 2 - 1;
+				pointer.y = -((event.clientY - rect.top) / height) * 2 + 1;
 				rayCaster.setFromCamera(pointer, camera);
 				// calculate objects intersecting the picking ray
 				const intersects = rayCaster.intersectObjects([plane], false);
@@ -125,7 +116,8 @@ function Test() {
 			};
 			canvas.addEventListener('pointerdown', pointerDown);
 
-			camera.position.z = 2.0;
+			const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ canvas });
+			renderer.setSize(width, height);
 			//group.rotation.y = Math.PI/4;
 			const animate = (time: number) => {
 				//convert to seconds
@@ -144,6 +136,7 @@ function Test() {
 				renderer.render(scene, camera);
 				stats.update();
 			};
+
 			renderer.setAnimationLoop(animate);
 
 			return () => {
@@ -157,7 +150,7 @@ function Test() {
 	}, []);
 
 	const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (material.map && pixelating) {
+		if (pixelating && material.map) {
 			currentResolutionIndex = event.target.valueAsNumber;
 			uniforms.iMouse.data = [-999, -999];
 			material.map.dispose();
@@ -172,6 +165,4 @@ function Test() {
 			<Slider onChange={onChange} resolutions={resolutions} defaultResolution={currentResolutionIndex} />
 		</>
 	);
-};
-
-export default Test;
+}
