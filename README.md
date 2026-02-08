@@ -7,8 +7,8 @@ npm install
 npm run dev
 
 ## Gifs from pet
-![Alt text](public/assets/images/gifs/0.gif)
+![sphere_webpgu.gif](public/assets/images/gifs/sphere_webpgu.gif)
 
-![Alt text](public/assets/images/gifs/1.gif)
+![triangle_webgpu.gif](public/assets/images/gifs/triangle_webgpu.gif)
 
-![Alt text](public/assets/images/gifs/2.gif)
+![basic_webgl.gif](public/assets/images/gifs/basic_webgl.gif)
